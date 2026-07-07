@@ -2,15 +2,6 @@
 import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 
 const formSchema = toTypedSchema(
   z
@@ -35,7 +26,6 @@ const onSubmit = handleSubmit((values) => {
   console.log(values)
 })
 </script>
-
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
     <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
@@ -107,4 +97,5 @@ const onSubmit = handleSubmit((values) => {
       </form>
     </div>
   </div>
-</template>
+</template>.
+
