@@ -25,14 +25,14 @@ const handleLogout = async () => {
         Todo
       </span>
 
-      <div class="hidden items-center gap-6 sm:flex">
+    <div class="hidden items-center gap-6 sm:flex">
         <NuxtLink
           to="/dashboard"
           class="text-sm font-medium text-muted-foreground hover:text-foreground"
           active-class="text-foreground font-semibold"
         >
-          Dashboard
-        </NuxtLink>
+          Dashboard 
+        </NuxtLink> 
         <NuxtLink
           to="/my-tasks"
           class="text-sm font-medium text-muted-foreground hover:text-foreground"
