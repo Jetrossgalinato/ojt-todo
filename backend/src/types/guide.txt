@@ -1,0 +1,1 @@
+The types/ directory is used to add shared TypeScript types and interfaces for the backend.
