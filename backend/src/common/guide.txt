@@ -1,0 +1,1 @@
+The common/ directory is used to add shared files and utilities used across backend modules.
