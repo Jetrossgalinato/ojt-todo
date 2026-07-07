@@ -1,9 +1,9 @@
-<script setup>
-
+<script setup lang="ts">
+onMounted(() => {
+  navigateTo("/login")
+})
 </script>
+
 <template>
-  <div>
-    <h1 class="text-4xl font-semibold">Welcome to the Todo List App</h1>
-    <ModeToggle />
-  </div>
+  <div />
 </template>
