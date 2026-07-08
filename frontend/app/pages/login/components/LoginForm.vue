@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
+import { useAuth } from "@/composables/useAuth"
+import { useAuthStore } from "@/stores/auth.store"
 
 const formSchema = toTypedSchema(
   z.object({
@@ -8,6 +10,9 @@ const formSchema = toTypedSchema(
     password: z.string().min(8, "Password must be at least 8 characters"),
   })
 )
+
+const { login } = useAuth()
+const authStore = useAuthStore()
 
 const errorMessage = ref("")
 const isSubmitting = ref(false)
@@ -17,21 +22,8 @@ async function onSubmit(values: Record<string, any>) {
   isSubmitting.value = true
 
   try {
-    const response = await $fetch<{
-      accessToken: string
-      user: { id: string; email: string; name: string | null }
-    }>("http://localhost:4000/auth/login", {
-      method: "POST",
-      body: {
-        email: values.email,
-        password: values.password,
-      },
-    })
-
-    // I-store ang token para magamit sa sunod nga requests
-    const token = useCookie("accessToken", { maxAge: 60 * 60 * 24 }) // 1 day
-    token.value = response.accessToken
-
+    const response = await login(values.email, values.password)
+    authStore.setAuth(response.accessToken, response.user)
     navigateTo("/dashboard")
   } catch (error: any) {
     errorMessage.value =
