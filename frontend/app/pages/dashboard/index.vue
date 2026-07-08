@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
-
-interface Task {
-  id: number
-  title: string
-  description: string
-  dueDate: string
-  dueTime: string
-  priority: "low" | "medium" | "high"
-  tags: string
-  list: string
-  completed: boolean
-}
-
-type TaskForm = Omit<Task, "id" | "completed">
+import type { Task, TaskForm } from "~/types/tasks.type"
 
 const lists = ["Personal", "Work", "Errands"]
 
@@ -89,7 +76,7 @@ function toggleComplete(id: number) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 p-4 sm:p-8">
+  <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
     <div>
       <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
       <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
@@ -165,46 +152,50 @@ function toggleComplete(id: number) {
     </div>
 
     <!-- Task list -->
-    <div class="flex flex-col gap-2">
-      <div
-        v-for="task in tasks"
-        :key="task.id"
-        class="flex items-start gap-3 rounded-lg border border-border bg-card p-3"
-      >
-        <input
-          type="checkbox"
-          class="mt-1"
-          :checked="task.completed"
-          @change="toggleComplete(task.id)"
-        />
-
-        <div class="flex-1 min-w-0">
-          <div class="flex items-start justify-between gap-2">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead class="w-10"></TableHead>
+          <TableHead>Task</TableHead>
+          <TableHead>Priority</TableHead>
+          <TableHead>List</TableHead>
+          <TableHead>Due</TableHead>
+          <TableHead>Tags</TableHead>
+          <TableHead class="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow v-for="task in tasks" :key="task.id">
+          <TableCell>
+            <input
+              type="checkbox"
+              :checked="task.completed"
+              @change="toggleComplete(task.id)"
+            />
+          </TableCell>
+          <TableCell>
             <p
               class="text-sm font-medium text-foreground"
               :class="task.completed ? 'line-through text-muted-foreground' : ''"
             >
               {{ task.title }}
             </p>
-            <div class="flex gap-1 shrink-0">
-              <Button variant="ghost" size="sm" @click="editTask(task)">Edit</Button>
-              <Button variant="ghost" size="sm" @click="deleteTask(task.id)">Delete</Button>
-            </div>
-          </div>
-
-          <p v-if="task.description" class="text-sm text-muted-foreground mt-1">
-            {{ task.description }}
-          </p>
-
-          <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
-            <span>{{ task.priority }} priority</span>
-            <span>·</span>
-            <span>{{ task.list }}</span>
-            <span v-if="task.dueDate">· Due {{ task.dueDate }} {{ task.dueTime }}</span>
-            <span v-if="task.tags">· {{ task.tags }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
+            <p v-if="task.description" class="text-xs text-muted-foreground mt-0.5">
+              {{ task.description }}
+            </p>
+          </TableCell>
+          <TableCell class="text-sm text-muted-foreground">{{ task.priority }}</TableCell>
+          <TableCell class="text-sm text-muted-foreground">{{ task.list }}</TableCell>
+          <TableCell class="text-sm text-muted-foreground">
+            {{ task.dueDate }} {{ task.dueTime }}
+          </TableCell>
+          <TableCell class="text-sm text-muted-foreground">{{ task.tags }}</TableCell>
+          <TableCell class="text-right">
+            <Button variant="ghost" size="sm" @click="editTask(task)">Edit</Button>
+            <Button variant="ghost" size="sm" @click="deleteTask(task.id)">Delete</Button>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
   </div>
 </template>
