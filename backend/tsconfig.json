@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "resolvePackageJsonExports": true,
@@ -24,7 +23,3 @@
     "noFallthroughCasesInSwitch": false
   }
 }
-//fix errors
-//connect into db
-//migraste
-//provide step by step postman testing

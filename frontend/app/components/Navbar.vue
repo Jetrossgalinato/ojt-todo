@@ -1,4 +1,12 @@
 <script setup>
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
+import { LogOut } from 'lucide-vue-next'
+
+const searchQuery = ref('')
+const router = useRouter()
+const authStore = useAuthStore()
+
 const handleSearch = () => {
   const query = searchQuery.value.trim()
 
@@ -6,9 +14,10 @@ const handleSearch = () => {
 
   console.log('Searching for:', query)
 }
+
 const handleLogout = async () => {
   try {
-    await logout()
+    authStore.logout()
     await router.push('/login')
   } catch (error) {
     console.error('Logout failed:', error)
