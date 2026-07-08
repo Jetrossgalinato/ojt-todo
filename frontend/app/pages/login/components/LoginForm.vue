@@ -9,9 +9,36 @@ const formSchema = toTypedSchema(
   })
 )
 
-function onSubmit(values: Record<string, any>) {
-  console.log("Login submitted:", values)
-  navigateTo("/dashboard")
+const errorMessage = ref("")
+const isSubmitting = ref(false)
+
+async function onSubmit(values: Record<string, any>) {
+  errorMessage.value = ""
+  isSubmitting.value = true
+
+  try {
+    const response = await $fetch<{
+      accessToken: string
+      user: { id: string; email: string; name: string | null }
+    }>("http://localhost:4000/auth/login", {
+      method: "POST",
+      body: {
+        email: values.email,
+        password: values.password,
+      },
+    })
+
+    // I-store ang token para magamit sa sunod nga requests
+    const token = useCookie("accessToken", { maxAge: 60 * 60 * 24 }) // 1 day
+    token.value = response.accessToken
+
+    navigateTo("/dashboard")
+  } catch (error: any) {
+    errorMessage.value =
+      error?.data?.message || "Invalid email or password. Please try again."
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -55,8 +82,12 @@ function onSubmit(values: Record<string, any>) {
       </FormItem>
     </FormField>
 
-    <Button type="submit" class="w-full">
-      Sign in
+    <p v-if="errorMessage" class="text-sm text-destructive text-center">
+      {{ errorMessage }}
+    </p>
+
+    <Button type="submit" class="w-full" :disabled="isSubmitting">
+      {{ isSubmitting ? "Signing in..." : "Sign in" }}
     </Button>
 
     <p class="text-center text-sm text-muted-foreground">
