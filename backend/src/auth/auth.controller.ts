@@ -12,5 +12,3 @@ export class AuthController {
     return this.authService.login(dto);
   }
 }
-//remove register endpoint for now, since we are not allowing registration yet
-//add users in the seeder instead. We can add registration later if we want to allow users to register themselves.

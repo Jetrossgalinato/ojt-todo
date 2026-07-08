@@ -12,7 +12,7 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    // 1. Pangitaa ang user pinaagi sa email
+    
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -21,14 +21,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // 2. I-compare ang gi-type nga password sa hashed password sa database
+  
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // 3. I-return ang user data + token
+
     return this.buildAuthResponse(user);
   }
 
