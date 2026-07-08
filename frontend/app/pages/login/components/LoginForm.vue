@@ -55,12 +55,7 @@ async function onSubmit(values: Record<string, any>) {
       <FormItem>
         <div class="flex items-center justify-between">
           <Label for="password">Password</Label>
-          <NuxtLink
-            to="/forgot-password"
-            class="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Forgot your password?
-          </NuxtLink>
+        
         </div>
         <FormControl>
           <Input
@@ -70,6 +65,12 @@ async function onSubmit(values: Record<string, any>) {
             v-bind="componentField"
           />
         </FormControl>
+          <NuxtLink
+            to="/forgot-password"
+            class="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Forgot your password?
+          </NuxtLink>
         <FormMessage />
       </FormItem>
     </FormField>
