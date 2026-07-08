@@ -10,7 +10,8 @@ const tasks = ref<Task[]>([
 
 const pendingCount = computed(() => tasks.value.filter((t) => !t.completed).length)
 
-// Form state (used for both add and edit)
+// Dialog + form state
+const dialogOpen = ref(false)
 const editingId = ref<number | null>(null)
 
 const form = ref<TaskForm>({
@@ -23,8 +24,23 @@ const form = ref<TaskForm>({
   list: lists[0],
 })
 
+function openAddDialog() {
+  editingId.value = null
+  form.value = {
+    title: "",
+    description: "",
+    dueDate: "",
+    dueTime: "",
+    priority: "medium",
+    tags: "",
+    list: lists[0],
+  }
+  dialogOpen.value = true
+}
+
 function resetForm() {
   editingId.value = null
+  dialogOpen.value = false
   form.value = {
     title: "",
     description: "",
@@ -38,6 +54,7 @@ function resetForm() {
 
 function editTask(task: Task) {
   editingId.value = task.id
+  dialogOpen.value = true
   form.value = {
     title: task.title,
     description: task.description,
@@ -77,79 +94,86 @@ function toggleComplete(id: number) {
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div>
-      <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
-      <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
+        <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
+      </div>
+      <Button @click="openAddDialog">+ Add Task</Button>
     </div>
 
-    <!-- Add / Edit form -->
-    <div class="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
-      <p class="text-sm font-medium text-foreground">
-        {{ editingId ? "Edit task" : "Add task" }}
-      </p>
+    <!-- Add / Edit Task Dialog -->
+    <Dialog v-model:open="dialogOpen">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{{ editingId ? "Edit task" : "Add task" }}</DialogTitle>
+        </DialogHeader>
 
-      <div class="grid gap-1.5">
-        <Label for="title">Title</Label>
-        <Input id="title" v-model="form.title" placeholder="Task title" />
-      </div>
+        <div class="flex flex-col gap-3">
+          <div class="grid gap-1.5">
+            <Label for="title">Title</Label>
+            <Input id="title" v-model="form.title" placeholder="Task title" />
+          </div>
 
-      <div class="grid gap-1.5">
-        <Label for="description">Description / notes</Label>
-        <textarea
-          id="description"
-          v-model="form.description"
-          rows="2"
-          placeholder="Optional notes..."
-          class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40"
-        />
-      </div>
+          <div class="grid gap-1.5">
+            <Label for="description">Description / notes</Label>
+            <textarea
+              id="description"
+              v-model="form.description"
+              rows="2"
+              placeholder="Optional notes..."
+              class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40"
+            />
+          </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="grid gap-1.5">
-          <Label for="due-date">Due date</Label>
-          <Input id="due-date" v-model="form.dueDate" type="date" />
+          <div class="grid grid-cols-2 gap-3">
+            <div class="grid gap-1.5">
+              <Label for="due-date">Due date</Label>
+              <Input id="due-date" v-model="form.dueDate" type="date" />
+            </div>
+            <div class="grid gap-1.5">
+              <Label for="due-time">Due time</Label>
+              <Input id="due-time" v-model="form.dueTime" type="time" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="grid gap-1.5">
+              <Label for="priority">Priority</Label>
+              <select
+                id="priority"
+                v-model="form.priority"
+                class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="grid gap-1.5">
+              <Label for="list">List / category</Label>
+              <select
+                id="list"
+                v-model="form.list"
+                class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40"
+              >
+                <option v-for="l in lists" :key="l" :value="l">{{ l }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid gap-1.5">
+            <Label for="tags">Tags</Label>
+            <Input id="tags" v-model="form.tags" placeholder="school, urgent (comma separated)" />
+          </div>
         </div>
-        <div class="grid gap-1.5">
-          <Label for="due-time">Due time</Label>
-          <Input id="due-time" v-model="form.dueTime" type="time" />
-        </div>
-      </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="grid gap-1.5">
-          <Label for="priority">Priority</Label>
-          <select
-            id="priority"
-            v-model="form.priority"
-            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-        <div class="grid gap-1.5">
-          <Label for="list">List / category</Label>
-          <select
-            id="list"
-            v-model="form.list"
-            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground/40"
-          >
-            <option v-for="l in lists" :key="l" :value="l">{{ l }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid gap-1.5">
-        <Label for="tags">Tags</Label>
-        <Input id="tags" v-model="form.tags" placeholder="school, urgent (comma separated)" />
-      </div>
-
-      <div class="flex gap-2 mt-1">
-        <Button @click="saveTask">{{ editingId ? "Save changes" : "Add task" }}</Button>
-        <Button v-if="editingId" variant="outline" @click="resetForm">Cancel</Button>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="outline" @click="dialogOpen = false">Cancel</Button>
+          <Button @click="saveTask">{{ editingId ? "Save changes" : "Add task" }}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <!-- Task list -->
     <Table>
