@@ -39,19 +39,18 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
     <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-
-     
+      <!-- Success state -->
       <div v-if="isSubmitted" class="flex flex-col gap-4 text-center">
         <h1 class="text-lg font-semibold text-foreground">Check your email</h1>
         <p class="text-sm text-muted-foreground">
           If an account exists for that email, we've sent a link to reset your password.
         </p>
-        <Button variant="link" class="text-sm" @click="navigateTo('/login')">
+        <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
           Back to login
-        </Button>
+        </NuxtLink>
       </div>
 
-    
+      <!-- Form state -->
       <div v-else>
         <div class="mb-6">
           <h1 class="text-lg font-semibold text-foreground">Forgot password?</h1>
@@ -80,8 +79,8 @@ const onSubmit = handleSubmit(async (values) => {
           </Button>
 
           <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 text-center">
-  Back to login
-</NuxtLink>
+            Back to login
+          </NuxtLink>
         </form>
       </div>
     </div>

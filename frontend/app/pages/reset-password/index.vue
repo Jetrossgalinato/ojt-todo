@@ -49,20 +49,18 @@ const onSubmit = handleSubmit(async (values) => {
 })
 </script>
 
-
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
     <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-
       <!-- No token -->
       <div v-if="!token" class="flex flex-col gap-4 text-center">
         <h1 class="text-lg font-semibold text-foreground">Invalid link</h1>
         <p class="text-sm text-muted-foreground">
           This password reset link is invalid or has expired.
         </p>
-        <Button variant="link" class="text-sm" @click="navigateTo('/forgot-password')">
+        <NuxtLink to="/forgot-password" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
           Request a new link
-        </Button>
+        </NuxtLink>
       </div>
 
       <!-- Success state -->
@@ -71,11 +69,11 @@ const onSubmit = handleSubmit(async (values) => {
         <p class="text-sm text-muted-foreground">
           Your password has been successfully reset.
         </p>
-       <NuxtLink to="/login">
-  <Button class="w-full">
-    Go to login
-  </Button>
-</NuxtLink>
+        <NuxtLink to="/login">
+          <Button class="w-full">
+            Go to login
+          </Button>
+        </NuxtLink>
       </div>
 
       <!-- Form state -->
