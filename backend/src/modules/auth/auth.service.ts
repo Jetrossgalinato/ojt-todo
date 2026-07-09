@@ -1,5 +1,6 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../database/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -20,6 +21,7 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
+        id: randomUUID(),
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
