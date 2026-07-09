@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
+import { useAuth } from "@/composables/useAuth"
+import { useAuthStore } from "@/stores/auth.store"
 
 const formSchema = toTypedSchema(
   z.object({
@@ -9,9 +11,26 @@ const formSchema = toTypedSchema(
   })
 )
 
-function onSubmit(values: Record<string, any>) {
-  console.log("Login submitted:", values)
-  navigateTo("/dashboard")
+const { login } = useAuth()
+const authStore = useAuthStore()
+
+const errorMessage = ref("")
+const isSubmitting = ref(false)
+
+async function onSubmit(values: Record<string, any>) {
+  errorMessage.value = ""
+  isSubmitting.value = true
+
+  try {
+    const response = await login(values.email, values.password)
+    authStore.setAuth(response.accessToken, response.user)
+    navigateTo("/dashboard")
+  } catch (error: any) {
+    errorMessage.value =
+      error?.data?.message || "Invalid email or password. Please try again."
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -36,12 +55,7 @@ function onSubmit(values: Record<string, any>) {
       <FormItem>
         <div class="flex items-center justify-between">
           <Label for="password">Password</Label>
-          <NuxtLink
-            to="/forgot-password"
-            class="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Forgot your password?
-          </NuxtLink>
+        
         </div>
         <FormControl>
           <Input
@@ -51,12 +65,22 @@ function onSubmit(values: Record<string, any>) {
             v-bind="componentField"
           />
         </FormControl>
+          <NuxtLink
+            to="/forgot-password"
+            class="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Forgot your password?
+          </NuxtLink>
         <FormMessage />
       </FormItem>
     </FormField>
 
-    <Button type="submit" class="w-full">
-      Sign in
+    <p v-if="errorMessage" class="text-sm text-destructive text-center">
+      {{ errorMessage }}
+    </p>
+
+    <Button type="submit" class="w-full" :disabled="isSubmitting">
+      {{ isSubmitting ? "Signing in..." : "Sign in" }}
     </Button>
 
     <p class="text-center text-sm text-muted-foreground">
