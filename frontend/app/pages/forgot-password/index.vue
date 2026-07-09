@@ -79,9 +79,9 @@ const onSubmit = handleSubmit(async (values) => {
             {{ isSubmitting ? "Sending..." : "Send reset link" }}
           </Button>
 
-          <Button variant="link" type="button" class="text-sm" @click="navigateTo('/login')">
-            Back to login
-          </Button>
+          <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 text-center">
+  Back to login
+</NuxtLink>
         </form>
       </div>
     </div>

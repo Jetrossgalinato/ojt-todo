@@ -71,9 +71,11 @@ const onSubmit = handleSubmit(async (values) => {
         <p class="text-sm text-muted-foreground">
           Your password has been successfully reset.
         </p>
-        <Button class="w-full" @click="navigateTo('/login')">
-          Go to login
-        </Button>
+       <NuxtLink to="/login">
+  <Button class="w-full">
+    Go to login
+  </Button>
+</NuxtLink>
       </div>
 
       <!-- Form state -->
