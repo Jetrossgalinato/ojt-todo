@@ -3,8 +3,6 @@ import { ref, computed, onMounted } from "vue"
 import { useAuthStore } from "~/stores/auth.store"
 import { useTasks } from "~/composables/useTasks"
 import type { Task, TaskForm } from "~/types/tasks.type"
-import TaskDialog from "./components/TaskDialog.vue"
-import TaskTable from "./components/TaskTable.vue"
 
 const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
 const authStore = useAuthStore()
