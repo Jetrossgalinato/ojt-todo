@@ -1,0 +1,87 @@
+<script setup lang="ts">
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import * as z from "zod"
+
+const formSchema = toTypedSchema(
+  z.object({
+    email: z.string().email("Please enter a valid email address"),
+  })
+)
+
+const { handleSubmit } = useForm({
+  validationSchema: formSchema,
+})
+
+const isSubmitted = ref(false)
+const isSubmitting = ref(false)
+const errorMessage = ref("")
+
+const onSubmit = handleSubmit(async (values) => {
+  errorMessage.value = ""
+  isSubmitting.value = true
+
+  try {
+    
+    console.log("Forgot password request:", values)
+    isSubmitted.value = true
+  } catch (error: any) {
+    errorMessage.value =
+      error?.data?.message || "Something went wrong. Please try again."
+  } finally {
+    isSubmitting.value = false
+  }
+})
+</script>
+
+<template>
+  <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
+    <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
+
+     
+      <div v-if="isSubmitted" class="flex flex-col gap-4 text-center">
+        <h1 class="text-lg font-semibold text-foreground">Check your email</h1>
+        <p class="text-sm text-muted-foreground">
+          If an account exists for that email, we've sent a link to reset your password.
+        </p>
+        <Button variant="link" class="text-sm" @click="navigateTo('/login')">
+          Back to login
+        </Button>
+      </div>
+
+    
+      <div v-else>
+        <div class="mb-6">
+          <h1 class="text-lg font-semibold text-foreground">Forgot password?</h1>
+          <p class="text-sm text-muted-foreground mt-1">
+            Enter your email and we'll send you a link to reset your password.
+          </p>
+        </div>
+
+        <form class="flex flex-col gap-5" @submit="onSubmit">
+          <FormField v-slot="{ componentField }" name="email">
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="m@example.com" v-bind="componentField" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <p v-if="errorMessage" class="text-sm text-destructive text-center">
+            {{ errorMessage }}
+          </p>
+
+          <Button type="submit" class="w-full" :disabled="isSubmitting">
+            {{ isSubmitting ? "Sending..." : "Send reset link" }}
+          </Button>
+
+          <Button variant="link" type="button" class="text-sm" @click="navigateTo('/login')">
+            Back to login
+          </Button>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
