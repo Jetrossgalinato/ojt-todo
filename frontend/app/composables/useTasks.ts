@@ -5,10 +5,10 @@ export function useTasks() {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
 
-  function authHeaders() {
+  function authHeaders(): Record<string, string> | undefined {
     return authStore.accessToken
       ? { Authorization: `Bearer ${authStore.accessToken}` }
-      : {}
+      : undefined
   }
 
   const apiBase = config.public.apiBase
@@ -18,18 +18,20 @@ export function useTasks() {
   }
 
   async function createTask(form: TaskForm): Promise<Task> {
+    const payload = { ...form, listName: form.list }
     return await $fetch<Task>(`${apiBase}/todos`, {
       method: "POST",
       headers: authHeaders(),
-      body: form,
+      body: payload,
     })
   }
 
   async function updateTask(id: string, data: Partial<Task>): Promise<Task> {
+    const payload = { ...data, listName: data.list }
     return await $fetch<Task>(`${apiBase}/todos/${id}`, {
       method: "PUT",
       headers: authHeaders(),
-      body: data,
+      body: payload,
     })
   }
 

@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
+import { useAuthStore } from "~/stores/auth.store"
+import { useTasks } from "~/composables/useTasks"
 import type { Task, TaskForm } from "~/types/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
 const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
+const authStore = useAuthStore()
 
 const lists = ["Personal", "Work", "Errands"]
+const defaultList = lists[0] ?? "Personal"
 
 const tasks = ref<Task[]>([])
 
@@ -30,8 +34,13 @@ const form = ref<TaskForm>({
   dueTime: "",
   priority: "medium",
   tags: "",
-  list: lists[0],
+  list: defaultList,
 })
+
+function handleAddClick() {
+  if (!authStore.accessToken) return navigateTo('/login')
+  openAddDialog()
+}
 
 function openAddDialog() {
   editingId.value = null
@@ -42,7 +51,7 @@ function openAddDialog() {
     dueTime: "",
     priority: "medium",
     tags: "",
-    list: lists[0],
+    list: defaultList,
   }
   dialogOpen.value = true
 }
@@ -57,7 +66,7 @@ function resetForm() {
     dueTime: "",
     priority: "medium",
     tags: "",
-    list: lists[0],
+    list: defaultList,
   }
 }
 
@@ -77,6 +86,12 @@ function editTask(task: Task) {
 
 async function saveTask() {
   if (!form.value.title.trim()) return
+
+  // Require authentication before creating/updating tasks
+  if (!authStore.accessToken) {
+    // Redirect to login so user can authenticate
+    return navigateTo('/login')
+  }
 
   try {
     if (editingId.value) {
@@ -122,7 +137,7 @@ async function toggleComplete(id: string) {
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
-      <Button @click="openAddDialog">+ Add Task</Button>
+      <Button @click="handleAddClick">+ Add Task</Button>
     </div>
 
     <!-- Add / Edit Task Dialog -->
