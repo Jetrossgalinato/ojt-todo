@@ -14,9 +14,27 @@ const formSchema = toTypedSchema(
   })
 )
 
-function onSubmit(values: Record<string, any>) {
-  console.log("Register submitted:", values)
-  navigateTo("/login")
+const errorMessage = ref<string | null>(null)
+
+async function onSubmit(values: Record<string, any>) {
+  errorMessage.value = null
+
+  try {
+    const response = await $fetch("http://localhost:4000/auth/register", {
+      method: "POST",
+      body: {
+        name: values.fullName,
+        email: values.email,
+        password: values.password,
+      },
+    })
+
+    console.log("Registration successful:", response)
+    await navigateTo("/login")
+  } catch (error: any) {
+    errorMessage.value = error?.data?.message || "Registration failed"
+    console.error("Registration error:", error)
+  }
 }
 </script>
 
@@ -81,6 +99,10 @@ function onSubmit(values: Record<string, any>) {
         <FormMessage />
       </FormItem>
     </FormField>
+
+    <div v-if="errorMessage" class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+      {{ errorMessage }}
+    </div>
 
     <Button type="submit" class="w-full">
       Sign up
