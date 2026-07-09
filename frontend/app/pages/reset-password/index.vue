@@ -2,9 +2,11 @@
 import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
+import { useAuth } from "@/composables/useAuth"
 
 const route = useRoute()
 const token = route.query.token as string | undefined
+const { resetPassword } = useAuth()
 
 const formSchema = toTypedSchema(
   z
@@ -36,8 +38,7 @@ const onSubmit = handleSubmit(async (values) => {
   isSubmitting.value = true
 
   try {
-    // TODO: connect to backend /auth/reset-password endpoint
-    console.log("Reset password:", { token, password: values.password })
+    await resetPassword(token, values.password)
     isSuccess.value = true
   } catch (error: any) {
     errorMessage.value =
@@ -47,6 +48,7 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 </script>
+
 
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
