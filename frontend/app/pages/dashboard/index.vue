@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import type { Task, TaskForm } from "~/types/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
+
+const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
 
 const lists = ["Personal", "Work", "Errands"]
 
 const tasks = ref<Task[]>([])
 
+onMounted(async () => {
+  try {
+    tasks.value = await fetchTasks()
+  } catch (err) {
+    console.error("Failed to load tasks:", err)
+  }
+})
+
 const pendingCount = computed(() => tasks.value.filter((t) => !t.completed).length)
 
 const dialogOpen = ref(false)
-const editingId = ref<number | null>(null)
+const editingId = ref<string | null>(null)
 
 const form = ref<TaskForm>({
   title: "",
@@ -65,29 +75,43 @@ function editTask(task: Task) {
   }
 }
 
-function saveTask() {
+async function saveTask() {
   if (!form.value.title.trim()) return
 
-  if (editingId.value) {
-    const task = tasks.value.find((t) => t.id === editingId.value)
-    if (task) Object.assign(task, form.value)
-  } else {
-    tasks.value.unshift({
-      ...form.value,
-      id: Date.now(),
-      completed: false,
-    })
+  try {
+    if (editingId.value) {
+      const updated = await updateTask(editingId.value, form.value)
+      const task = tasks.value.find((t) => t.id === editingId.value)
+      if (task) Object.assign(task, updated)
+    } else {
+      const created = await createTask(form.value)
+      tasks.value.unshift(created)
+    }
+    resetForm()
+  } catch (err) {
+    console.error("Failed to save task:", err)
   }
-  resetForm()
 }
 
-function deleteTask(id: number) {
-  tasks.value = tasks.value.filter((t) => t.id !== id)
+async function deleteTask(id: string) {
+  try {
+    await apiDeleteTask(id)
+    tasks.value = tasks.value.filter((t) => t.id !== id)
+  } catch (err) {
+    console.error("Failed to delete task:", err)
+  }
 }
 
-function toggleComplete(id: number) {
+async function toggleComplete(id: string) {
   const task = tasks.value.find((t) => t.id === id)
-  if (task) task.completed = !task.completed
+  if (!task) return
+
+  try {
+    const updated = await updateTask(id, { ...task, completed: !task.completed })
+    Object.assign(task, updated)
+  } catch (err) {
+    console.error("Failed to update task:", err)
+  }
 }
 </script>
 
