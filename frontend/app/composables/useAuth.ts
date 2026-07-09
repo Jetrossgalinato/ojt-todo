@@ -2,18 +2,38 @@ export function useAuth() {
   const config = useRuntimeConfig()
 
   async function login(email: string, password: string) {
-    const response = await $fetch<{
+    return await $fetch<{
       accessToken: string
       user: { id: string; email: string; name: string | null }
     }>(`${config.public.apiBase}/auth/login`, {
       method: "POST",
       body: { email, password },
     })
+  }
 
-    return response
+  async function forgotPassword(email: string) {
+    return await $fetch<{ message: string }>(
+      `${config.public.apiBase}/auth/forgot-password`,
+      {
+        method: "POST",
+        body: { email },
+      }
+    )
+  }
+
+  async function resetPassword(token: string, newPassword: string) {
+    return await $fetch<{ message: string }>(
+      `${config.public.apiBase}/auth/reset-password`,
+      {
+        method: "POST",
+        body: { token, newPassword },
+      }
+    )
   }
 
   return {
     login,
+    forgotPassword,
+    resetPassword,
   }
 }
