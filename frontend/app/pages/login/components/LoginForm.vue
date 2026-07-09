@@ -85,7 +85,7 @@ async function onSubmit(values: Record<string, any>) {
 
     <p class="text-center text-sm text-muted-foreground">
       Don't have an account?
-      <NuxtLink to="/registration" class="font-medium text-foreground underline underline-offset-4">
+      <NuxtLink to="/register" class="font-medium text-foreground underline underline-offset-4">
         Sign up
       </NuxtLink>
     </p>
