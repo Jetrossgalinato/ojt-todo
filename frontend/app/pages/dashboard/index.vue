@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import type { Task, TaskForm } from "~/types/tasks.type"
+import type { Task, TaskForm } from "~/type/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
@@ -20,7 +20,7 @@ const form = ref<TaskForm>({
   dueTime: "",
   priority: "medium",
   tags: "",
-  list: lists[0],
+  list: lists[0]!,
 })
 
 function openAddDialog() {
@@ -32,7 +32,7 @@ function openAddDialog() {
     dueTime: "",
     priority: "medium",
     tags: "",
-    list: lists[0],
+    list: lists[0]!,
   }
   dialogOpen.value = true
 }
@@ -47,7 +47,7 @@ function resetForm() {
     dueTime: "",
     priority: "medium",
     tags: "",
-    list: lists[0],
+    list: lists[0]!,
   }
 }
 
