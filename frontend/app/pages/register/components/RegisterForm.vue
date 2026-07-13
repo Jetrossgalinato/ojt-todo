@@ -26,10 +26,14 @@ async function onSubmit(values: Record<string, any>) {
 
   try {
     await register(values.fullName, values.email, values.password)
-    toast.success("Account created! Please sign in.")
+    toast.success("Account created", {
+      description: "Your account has been registered. Please sign in to continue.",
+    })
     await navigateTo("/login")
   } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Registration failed. Please try again."))
+    toast.error("Registration failed", {
+      description: getApiErrorMessage(error, "Something went wrong. Please try again."),
+    })
   } finally {
     isSubmitting.value = false
   }
