@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
@@ -43,7 +47,8 @@ export class AuthService {
     // (dili nato ihatag og hint kung naa ba tinuod nga account sa email)
     if (!user) {
       return {
-        message: 'If an account exists for that email, a reset link has been sent.',
+        message:
+          'If an account exists for that email, a reset link has been sent.',
       };
     }
 
@@ -62,7 +67,8 @@ export class AuthService {
     await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
     return {
-      message: 'If an account exists for that email, a reset link has been sent.',
+      message:
+        'If an account exists for that email, a reset link has been sent.',
     };
   }
 

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
+import { getApiErrorMessage } from "@/lib/get-api-error"
 
 const { forgotPassword } = useAuth()
 
@@ -18,18 +20,16 @@ const { handleSubmit } = useForm({
 
 const isSubmitted = ref(false)
 const isSubmitting = ref(false)
-const errorMessage = ref("")
 
 const onSubmit = handleSubmit(async (values) => {
-  errorMessage.value = ""
   isSubmitting.value = true
 
   try {
     await forgotPassword(values.email)
     isSubmitted.value = true
-  } catch (error: any) {
-    errorMessage.value =
-      error?.data?.message || "Something went wrong. Please try again."
+    toast.success("If an account exists, a reset link has been sent to your email.")
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."))
   } finally {
     isSubmitting.value = false
   }
@@ -39,7 +39,6 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
     <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-      <!-- Success state -->
       <div v-if="isSubmitted" class="flex flex-col gap-4 text-center">
         <h1 class="text-lg font-semibold text-foreground">Check your email</h1>
         <p class="text-sm text-muted-foreground">
@@ -50,7 +49,6 @@ const onSubmit = handleSubmit(async (values) => {
         </NuxtLink>
       </div>
 
-      <!-- Form state -->
       <div v-else>
         <div class="mb-6">
           <h1 class="text-lg font-semibold text-foreground">Forgot password?</h1>
@@ -69,10 +67,6 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-
-          <p v-if="errorMessage" class="text-sm text-destructive text-center">
-            {{ errorMessage }}
-          </p>
 
           <Button type="submit" class="w-full" :disabled="isSubmitting">
             {{ isSubmitting ? "Sending..." : "Send reset link" }}

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
+import { useAuth } from "@/composables/useAuth"
+import { getApiErrorMessage } from "@/lib/get-api-error"
+
+const { register } = useAuth()
 
 const formSchema = toTypedSchema(
   z.object({
@@ -14,26 +19,19 @@ const formSchema = toTypedSchema(
   })
 )
 
-const errorMessage = ref<string | null>(null)
+const isSubmitting = ref(false)
 
 async function onSubmit(values: Record<string, any>) {
-  errorMessage.value = null
+  isSubmitting.value = true
 
   try {
-    const response = await $fetch("http://localhost:4000/auth/register", {
-      method: "POST",
-      body: {
-        name: values.fullName,
-        email: values.email,
-        password: values.password,
-      },
-    })
-
-    console.log("Registration successful:", response)
+    await register(values.fullName, values.email, values.password)
+    toast.success("Account created! Please sign in.")
     await navigateTo("/login")
-  } catch (error: any) {
-    errorMessage.value = error?.data?.message || "Registration failed"
-    console.error("Registration error:", error)
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Registration failed. Please try again."))
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
@@ -100,12 +98,8 @@ async function onSubmit(values: Record<string, any>) {
       </FormItem>
     </FormField>
 
-    <div v-if="errorMessage" class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-      {{ errorMessage }}
-    </div>
-
-    <Button type="submit" class="w-full">
-      Sign up
+    <Button type="submit" class="w-full" :disabled="isSubmitting">
+      {{ isSubmitting ? "Creating account..." : "Sign up" }}
     </Button>
 
     <p class="text-center text-sm text-muted-foreground">

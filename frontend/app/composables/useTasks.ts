@@ -1,5 +1,4 @@
 import type { Task, TaskForm } from "~/types/tasks.type"
-import { useAuthStore } from "~/stores/auth.store"
 
 export function useTasks() {
   const config = useRuntimeConfig()

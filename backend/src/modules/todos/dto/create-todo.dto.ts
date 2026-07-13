@@ -1,30 +1,30 @@
-import { IsString, IsOptional, IsIn } from "class-validator"
+import { IsString, IsOptional, IsIn } from 'class-validator';
 
 export class CreateTodoDto {
   @IsString()
-  title: string
+  title: string;
 
   @IsOptional()
   @IsString()
-  description?: string
+  description?: string;
 
   @IsOptional()
   @IsString()
-  dueDate?: string
+  dueDate?: string;
 
   @IsOptional()
   @IsString()
-  dueTime?: string
+  dueTime?: string;
 
   @IsOptional()
-  @IsIn(["low", "medium", "high"])
-  priority?: string
-
-  @IsOptional()
-  @IsString()
-  tags?: string
+  @IsIn(['low', 'medium', 'high'])
+  priority?: string;
 
   @IsOptional()
   @IsString()
-  listName?: string
+  tags?: string;
+
+  @IsOptional()
+  @IsString()
+  listName?: string;
 }

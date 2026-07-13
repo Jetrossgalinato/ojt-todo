@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
-import { useAuthStore } from "@/stores/auth.store"
+import { getApiErrorMessage } from "@/lib/get-api-error"
 
 const formSchema = toTypedSchema(
   z.object({
@@ -14,20 +15,20 @@ const formSchema = toTypedSchema(
 const { login } = useAuth()
 const authStore = useAuthStore()
 
-const errorMessage = ref("")
 const isSubmitting = ref(false)
 
 async function onSubmit(values: Record<string, any>) {
-  errorMessage.value = ""
   isSubmitting.value = true
 
   try {
     const response = await login(values.email, values.password)
     authStore.setAuth(response.accessToken, response.user)
-    navigateTo("/dashboard")
-  } catch (error: any) {
-    errorMessage.value =
-      error?.data?.message || "Invalid email or password. Please try again."
+    toast.success("Signed in successfully")
+    await navigateTo("/dashboard")
+  } catch (error: unknown) {
+    toast.error(
+      getApiErrorMessage(error, "Invalid email or password. Please try again.")
+    )
   } finally {
     isSubmitting.value = false
   }
@@ -55,7 +56,6 @@ async function onSubmit(values: Record<string, any>) {
       <FormItem>
         <div class="flex items-center justify-between">
           <Label for="password">Password</Label>
-        
         </div>
         <FormControl>
           <Input
@@ -65,19 +65,15 @@ async function onSubmit(values: Record<string, any>) {
             v-bind="componentField"
           />
         </FormControl>
-          <NuxtLink
-            to="/forgot-password"
-            class="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Forgot your password?
-          </NuxtLink>
+        <NuxtLink
+          to="/forgot-password"
+          class="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Forgot your password?
+        </NuxtLink>
         <FormMessage />
       </FormItem>
     </FormField>
-
-    <p v-if="errorMessage" class="text-sm text-destructive text-center">
-      {{ errorMessage }}
-    </p>
 
     <Button type="submit" class="w-full" :disabled="isSubmitting">
       {{ isSubmitting ? "Signing in..." : "Sign in" }}
@@ -85,7 +81,7 @@ async function onSubmit(values: Record<string, any>) {
 
     <p class="text-center text-sm text-muted-foreground">
       Don't have an account?
-      <NuxtLink to="/registration" class="font-medium text-foreground underline underline-offset-4">
+      <NuxtLink to="/register" class="font-medium text-foreground underline underline-offset-4">
         Sign up
       </NuxtLink>
     </p>
