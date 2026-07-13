@@ -2,14 +2,10 @@
 import { toTypedSchema } from "@vee-validate/zod"
 import { toast } from "vue-sonner"
 import * as z from "zod"
-<<<<<<< HEAD
+import { Eye, EyeOff } from "@lucide/vue"
 import { useAuth } from "@/composables/useAuth"
-import { getApiErrorMessage } from "@/lib/get-api-error"
 
 const { register } = useAuth()
-=======
-import { Eye, EyeOff } from "@lucide/vue"
->>>>>>> 8e1c64a94c3706108dfb1703c2afbe5c832cccdc
 
 const formSchema = toTypedSchema(
   z.object({
@@ -23,11 +19,6 @@ const formSchema = toTypedSchema(
   })
 )
 
-<<<<<<< HEAD
-const isSubmitting = ref(false)
-
-async function onSubmit(values: Record<string, any>) {
-=======
 const errorMessage = ref<string | null>(null)
 const isSubmitting = ref(false)
 const showPassword = ref(false)
@@ -36,7 +27,6 @@ const shakeError = ref(false)
 
 async function onSubmit(values: Record<string, any>) {
   errorMessage.value = null
->>>>>>> 8e1c64a94c3706108dfb1703c2afbe5c832cccdc
   isSubmitting.value = true
 
   try {
@@ -45,21 +35,12 @@ async function onSubmit(values: Record<string, any>) {
       description: "Your account has been registered. Please sign in to continue.",
     })
     await navigateTo("/login")
-<<<<<<< HEAD
-  } catch (error: unknown) {
-    toast.error("Registration failed", {
-      description: getApiErrorMessage(error, "Something went wrong. Please try again."),
-    })
-=======
   } catch (error: any) {
     errorMessage.value = error?.data?.message || "Registration failed"
-    console.error("Registration error:", error)
 
-    // trigger shake animation
     shakeError.value = false
     await nextTick()
     shakeError.value = true
->>>>>>> 8e1c64a94c3706108dfb1703c2afbe5c832cccdc
   } finally {
     isSubmitting.value = false
   }
@@ -67,77 +48,10 @@ async function onSubmit(values: Record<string, any>) {
 
 function registerWithGoogle() {
   // TODO: wire this to your backend's Google OAuth endpoint
-  // e.g. window.location.href = `${useRuntimeConfig().public.apiBase}/auth/google`
 }
 </script>
 
 <template>
-<<<<<<< HEAD
-  <Form :validation-schema="formSchema" @submit="onSubmit" class="flex flex-col gap-6">
-    <FormField v-slot="{ componentField }" name="fullName">
-      <FormItem>
-        <Label for="fullName">Full Name</Label>
-        <FormControl>
-          <Input
-            id="fullName"
-            type="text"
-            placeholder="Juan Dela Cruz"
-            v-bind="componentField"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <FormField v-slot="{ componentField }" name="email">
-      <FormItem>
-        <Label for="email">Email</Label>
-        <FormControl>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            v-bind="componentField"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <FormField v-slot="{ componentField }" name="password">
-      <FormItem>
-        <Label for="password">Password</Label>
-        <FormControl>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            v-bind="componentField"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <FormField v-slot="{ componentField }" name="confirmPassword">
-      <FormItem>
-        <Label for="confirmPassword">Confirm Password</Label>
-        <FormControl>
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="••••••••"
-            v-bind="componentField"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <Button type="submit" class="w-full" :disabled="isSubmitting">
-      {{ isSubmitting ? "Creating account..." : "Sign up" }}
-    </Button>
-=======
   <div class="w-full animate-fade-in-up">
     <div class="mb-8 text-center">
       <h1 class="text-3xl font-bold tracking-tight text-foreground">
@@ -169,7 +83,6 @@ function registerWithGoogle() {
           <FormMessage />
         </FormItem>
       </FormField>
->>>>>>> 8e1c64a94c3706108dfb1703c2afbe5c832cccdc
 
       <FormField v-slot="{ componentField }" name="email">
         <FormItem>
@@ -289,14 +202,8 @@ function registerWithGoogle() {
 
 <style scoped>
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out both;
