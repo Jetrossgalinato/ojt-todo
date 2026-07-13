@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
+import { Eye, EyeOff } from "lucide-vue-next"
 import { useAuth } from "@/composables/useAuth"
 import { useAuthStore } from "@/stores/auth.store"
 
@@ -50,10 +51,10 @@ function loginWithGoogle() {
 <template>
   <div class="w-full animate-fade-in-up">
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold tracking-tight text-neutral-900">
+      <h1 class="text-3xl font-bold tracking-tight text-foreground">
         Welcome Back
       </h1>
-      <p class="mt-2 text-sm text-neutral-400">
+      <p class="mt-2 text-sm text-muted-foreground">
         Enter your email and password to access your account.
       </p>
     </div>
@@ -94,18 +95,12 @@ function loginWithGoogle() {
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Toggle password visibility"
                 @click="showPassword = !showPassword"
               >
-                <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a15.94 15.94 0 0 1-3.06 4.14M6.6 6.6C3.9 8.28 2 12 2 12a15.94 15.94 0 0 0 5.06 5.06M9.9 14.1a3 3 0 1 0 4.2-4.2" />
-                  <path d="M2 2l20 20" />
-                </svg>
+                <Eye v-if="showPassword" class="h-5 w-5" />
+                <EyeOff v-else class="h-5 w-5" />
               </button>
             </div>
           </FormControl>
@@ -114,11 +109,11 @@ function loginWithGoogle() {
       </FormField>
 
       <div class="flex items-center justify-between">
-        <label class="flex items-center gap-2 text-sm text-neutral-600">
+        <label class="flex items-center gap-2 text-sm text-foreground">
           <input
             v-model="rememberMe"
             type="checkbox"
-            class="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary/50"
+            class="h-4 w-4 rounded border-border text-primary focus:ring-primary/50"
           >
           Remember Me
         </label>
@@ -146,15 +141,15 @@ function loginWithGoogle() {
       </Button>
 
       <div class="flex items-center gap-3 py-1">
-        <div class="h-px flex-1 bg-neutral-200" />
-        <span class="text-xs text-neutral-400">Or Login With</span>
-        <div class="h-px flex-1 bg-neutral-200" />
+        <div class="h-px flex-1 bg-border" />
+        <span class="text-xs text-muted-foreground">Or Login With</span>
+        <div class="h-px flex-1 bg-border" />
       </div>
 
       <Button
         type="button"
         variant="outline"
-        class="h-11 w-full rounded-xl border-neutral-200 font-medium text-neutral-700 transition-all duration-150 hover:bg-neutral-50 active:scale-[0.98]"
+        class="h-11 w-full rounded-xl font-medium text-foreground transition-all duration-150 hover:bg-accent active:scale-[0.98]"
         @click="loginWithGoogle"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="mr-2 h-4 w-4">
@@ -166,7 +161,7 @@ function loginWithGoogle() {
         Google
       </Button>
 
-      <p class="text-center text-sm text-neutral-400">
+      <p class="text-center text-sm text-muted-foreground">
         Don't Have An Account?
         <NuxtLink to="/register" class="font-medium text-teal-600 hover:text-teal-500">
           Register Now.
