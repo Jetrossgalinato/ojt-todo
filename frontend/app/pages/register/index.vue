@@ -9,7 +9,7 @@ definePageMeta({
 
 <template>
   <div class="grid min-h-screen w-full lg:grid-cols-2">
-    <!-- LEFT: Login form panel -->
+    <!-- LEFT: Register form panel -->
     <div class="relative flex flex-col items-center justify-center bg-white px-6 py-12 sm:px-12 lg:px-20">
       <img
         src="/images/logo-todo.png"
