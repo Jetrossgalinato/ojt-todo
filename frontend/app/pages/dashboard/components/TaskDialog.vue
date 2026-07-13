@@ -3,7 +3,7 @@ import type { TaskForm } from "~/types/tasks.type"
 
 defineProps<{
   lists: string[]
-  editingId: number | null
+  editingId: string | null
 }>()
 
 const emit = defineEmits<{
@@ -17,12 +17,14 @@ const form = defineModel<TaskForm>("form", { required: true })
 
 <template>
   <Dialog v-model:open="open">
-    <DialogContent class="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle>{{ editingId ? "Edit task" : "Add task" }}</DialogTitle>
-      </DialogHeader>
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{{ editingId ? "Edit task" : "Add task" }}</DialogTitle>
+        </DialogHeader>
 
-      <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-3">
         <div class="grid gap-1.5">
           <Label for="title">Title</Label>
           <Input id="title" v-model="form.title" placeholder="Task title" />
@@ -86,5 +88,6 @@ const form = defineModel<TaskForm>("form", { required: true })
         <Button @click="emit('save')">{{ editingId ? "Save changes" : "Add task" }}</Button>
       </DialogFooter>
     </DialogContent>
+    </DialogPortal>
   </Dialog>
 </template>

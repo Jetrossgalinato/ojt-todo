@@ -1,17 +1,31 @@
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
+import { useAuthStore } from "~/stores/auth.store"
+import { useTasks } from "~/composables/useTasks"
 import type { Task, TaskForm } from "~/types/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
+const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
+const authStore = useAuthStore()
+
 const lists = ["Personal", "Work", "Errands"]
+const defaultList = lists[0] ?? "Personal"
 
 const tasks = ref<Task[]>([])
+
+onMounted(async () => {
+  try {
+    tasks.value = await fetchTasks()
+  } catch (err) {
+    console.error("Failed to load tasks:", err)
+  }
+})
 
 const pendingCount = computed(() => tasks.value.filter((t) => !t.completed).length)
 
 const dialogOpen = ref(false)
-const editingId = ref<number | null>(null)
+const editingId = ref<string | null>(null)
 
 const form = ref<TaskForm>({
   title: "",
@@ -20,8 +34,13 @@ const form = ref<TaskForm>({
   dueTime: "",
   priority: "medium",
   tags: "",
-  list: lists[0],
+  list: defaultList,
 })
+
+function handleAddClick() {
+  if (!authStore.accessToken) return navigateTo('/login')
+  openAddDialog()
+}
 
 function openAddDialog() {
   editingId.value = null
@@ -32,7 +51,7 @@ function openAddDialog() {
     dueTime: "",
     priority: "medium",
     tags: "",
-    list: lists[0],
+    list: defaultList,
   }
   dialogOpen.value = true
 }
@@ -47,7 +66,7 @@ function resetForm() {
     dueTime: "",
     priority: "medium",
     tags: "",
-    list: lists[0],
+    list: defaultList,
   }
 }
 
@@ -65,29 +84,49 @@ function editTask(task: Task) {
   }
 }
 
-function saveTask() {
+async function saveTask() {
   if (!form.value.title.trim()) return
 
-  if (editingId.value) {
-    const task = tasks.value.find((t) => t.id === editingId.value)
-    if (task) Object.assign(task, form.value)
-  } else {
-    tasks.value.unshift({
-      ...form.value,
-      id: Date.now(),
-      completed: false,
-    })
+  // Require authentication before creating/updating tasks
+  if (!authStore.accessToken) {
+    // Redirect to login so user can authenticate
+    return navigateTo('/login')
   }
-  resetForm()
+
+  try {
+    if (editingId.value) {
+      const updated = await updateTask(editingId.value, form.value)
+      const task = tasks.value.find((t) => t.id === editingId.value)
+      if (task) Object.assign(task, updated)
+    } else {
+      const created = await createTask(form.value)
+      tasks.value.unshift(created)
+    }
+    resetForm()
+  } catch (err) {
+    console.error("Failed to save task:", err)
+  }
 }
 
-function deleteTask(id: number) {
-  tasks.value = tasks.value.filter((t) => t.id !== id)
+async function deleteTask(id: string) {
+  try {
+    await apiDeleteTask(id)
+    tasks.value = tasks.value.filter((t) => t.id !== id)
+  } catch (err) {
+    console.error("Failed to delete task:", err)
+  }
 }
 
-function toggleComplete(id: number) {
+async function toggleComplete(id: string) {
   const task = tasks.value.find((t) => t.id === id)
-  if (task) task.completed = !task.completed
+  if (!task) return
+
+  try {
+    const updated = await updateTask(id, { ...task, completed: !task.completed })
+    Object.assign(task, updated)
+  } catch (err) {
+    console.error("Failed to update task:", err)
+  }
 }
 </script>
 
@@ -98,7 +137,7 @@ function toggleComplete(id: number) {
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
-      <Button @click="openAddDialog">+ Add Task</Button>
+      <Button @click="handleAddClick">+ Add Task</Button>
     </div>
 
     <!-- Add / Edit Task Dialog -->

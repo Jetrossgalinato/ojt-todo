@@ -1,7 +1,5 @@
-// frontend/app/types/tasks.type.ts
-
 export interface Task {
-  id: number
+  id: string
   title: string
   description: string
   dueDate: string
