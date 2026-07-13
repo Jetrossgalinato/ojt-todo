@@ -4,6 +4,10 @@ import type { Task, TaskForm } from "~/type/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
+definePageMeta({
+  layout: 'inner-layout'
+})
+
 const lists = ["Personal", "Work", "Errands"]
 
 const tasks = ref<Task[]>([])
