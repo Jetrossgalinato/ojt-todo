@@ -1,17 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
 model User {
-  id                    String    @id @default(uuid())
-  email                 String    @unique
-  password              String
-  name                  String?
-  resetPasswordToken    String?   @unique
-  resetPasswordExpires  DateTime? @db.Timestamp(6)
-  createdAt             DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt             DateTime  @default(now()) @db.Timestamp(6)
-  todos                 Todo[]
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  password             String
+  name                 String?
+  resetPasswordToken   String?   @unique
+  resetPasswordExpires DateTime? @db.Timestamp(6)
+  createdAt            DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime  @default(now()) @db.Timestamp(6)
+  todos                Todo[]
 }
 
 model Todo {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
   completed   Boolean   @default(false)
+  userId      String
+  dueDate     DateTime?
+  dueTime     String?
+  priority    String    @default("medium")
+  tags        String?
+  listName    String?
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @db.Timestamp(6)
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+}
