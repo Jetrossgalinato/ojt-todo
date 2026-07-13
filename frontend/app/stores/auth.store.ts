@@ -8,7 +8,7 @@ interface User {
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    accessToken: null as string | null,
+    accessToken: useCookie('accessToken').value ?? null as string | null,
     user: null as User | null,
   }),
 

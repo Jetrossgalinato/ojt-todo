@@ -1,10 +1,10 @@
-import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../database/prisma.service';
+import { EmailService } from '../email/email.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
@@ -13,6 +13,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -33,65 +34,52 @@ export class AuthService {
     return this.buildAuthResponse(user);
   }
 
-  async register(dto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Email is already registered');
-    }
-
-    const SALT_ROUNDS = 10;
-    const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        name: dto.name ?? null,
-      },
-    });
-
-    return this.buildAuthResponse(user);
-  }
-
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    // Dili nato ipahibalo kung existing ba ang email o wala, para dili ma-leak ang info
+    // Security: parehas ra ang response bisan naa ba o walay account
+    // (dili nato ihatag og hint kung naa ba tinuod nga account sa email)
     if (!user) {
-      return { message: 'If that email exists, a reset link has been sent.' };
+      return {
+        message: 'If an account exists for that email, a reset link has been sent.',
+      };
     }
 
+    // Generate random token (32 bytes = 64 hex characters)
     const resetToken = randomBytes(32).toString('hex');
-    const resetPasswordExpires = new Date(Date.now() + 1000 * 60 * 30); // 30 minutes
+    const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
         resetPasswordToken: resetToken,
-        resetPasswordExpires,
+        resetPasswordExpires: resetExpires,
       },
     });
 
-    // TODO: I-send ang resetToken sa email sa user kung naa nay EmailService
-    return { message: 'If that email exists, a reset link has been sent.' };
+    await this.emailService.sendPasswordResetEmail(user.email, resetToken);
+
+    return {
+      message: 'If an account exists for that email, a reset link has been sent.',
+    };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findUnique({
       where: { resetPasswordToken: dto.token },
     });
 
-    if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+    if (!user) {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    const SALT_ROUNDS = 10;
-    const hashedPassword = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
+    if (!user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -102,7 +90,7 @@ export class AuthService {
       },
     });
 
-    return { message: 'Password has been reset successfully.' };
+    return { message: 'Password has been reset successfully' };
   }
 
   private buildAuthResponse(user: {
