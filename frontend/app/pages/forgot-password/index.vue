@@ -2,8 +2,10 @@
 import { ref, nextTick } from "vue"
 import { useForm, Field as FormField, ErrorMessage as FormMessage } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
+import { getApiErrorMessage } from "@/lib/get-api-error"
 
 const { forgotPassword } = useAuth()
 
@@ -21,7 +23,6 @@ const errorMessage = ref("")
 const shakeError = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
-  errorMessage.value = ""
   isSubmitting.value = true
   try {
     await forgotPassword(values.email)

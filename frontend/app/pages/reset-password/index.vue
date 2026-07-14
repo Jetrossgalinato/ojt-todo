@@ -2,8 +2,10 @@
 import { ref, nextTick } from "vue"
 import { useForm, Field as FormField, ErrorMessage as FormMessage } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
+
 
 const route = useRoute()
 const token = route.query.token as string | undefined
@@ -28,7 +30,7 @@ const shakeError = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
   if (!token) {
-    errorMessage.value = "Invalid or missing reset token."
+    toast.error("Invalid or missing reset token.")
     return
   }
   errorMessage.value = ""
