@@ -7,7 +7,7 @@
         <span class="text-lg font-bold">Todo</span>
       </div>
 
-      <nav class="flex flex-col gap-1">
+      <nav class="flex flex-col gap-1 flex-1">
         <NuxtLink
           v-for="item in navItems"
           :key="item.label"
@@ -21,6 +21,15 @@
           {{ item.label }}
         </NuxtLink>
       </nav>
+
+      <!-- Logout button -->
+      <button
+        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-teal-100 hover:bg-teal-700 transition-colors"
+        @click="handleLogout"
+      >
+        <LogOut class="w-4 h-4" />
+        Logout
+      </button>
     </aside>
 
     <!-- Main content -->
@@ -31,10 +40,12 @@
 </template>
 
 <script setup lang="ts">
-import { ClipboardList, CheckSquare, Calendar, Clock, CheckCircle2, Settings } from 'lucide-vue-next'
+import { ClipboardList, CheckSquare, Calendar, Clock, CheckCircle2, Settings, LogOut } from 'lucide-vue-next'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '~/stores/auth.store'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const navItems = [
   { label: 'My Tasks', to: '/dashboard', icon: CheckSquare },
@@ -46,5 +57,10 @@ const navItems = [
 
 function isActive(path: string) {
   return route.path === path
+}
+
+function handleLogout() {
+  authStore.logout?.()
+  navigateTo('/login')
 }
 </script>
