@@ -138,11 +138,11 @@ async function toggleComplete(id: string) {
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
       <Button
-        @click="handleAddClick"
-        class="rounded-full px-4 py-1.5 text-xs h-auto bg-[#0d6b61] hover:bg-[#0a5951] text-white border-0"
-      >
-        + Add Task
-      </Button>
+  @click="handleAddClick"
+  class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
+>
+  + Add Task
+</Button>
     </div>
 
     <!-- Add / Edit Task Dialog -->
