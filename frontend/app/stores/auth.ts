@@ -26,12 +26,22 @@ export const useAuthStore = defineStore("auth", {
         sameSite: "lax",
       })
       token.value = accessToken
+
+      const userCookie = useCookie<User | null>("user", {
+        maxAge: 60 * 60 * 24,
+        sameSite: "lax",
+      })
+      userCookie.value = user
     },
 
     restoreAuth() {
       const token = useCookie("accessToken")
+      const userCookie = useCookie<User | null>("user")
       if (token.value) {
         this.accessToken = token.value
+        if (userCookie.value) {
+          this.user = userCookie.value
+        }
       }
     },
 
@@ -41,6 +51,9 @@ export const useAuthStore = defineStore("auth", {
 
       const token = useCookie("accessToken")
       token.value = null
+      
+      const userCookie = useCookie("user")
+      userCookie.value = null
     },
   },
 })
