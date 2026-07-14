@@ -1,18 +1,13 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  BadRequestException,
-  ConflictException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../database/prisma.service';
 import { EmailService } from '../email/email.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +23,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      throw new ConflictException('Email is already registered');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -37,12 +32,11 @@ export class AuthService {
       data: {
         email: dto.email,
         password: hashedPassword,
-        name: dto.name,
+        name: dto.name ?? null,
       },
     });
 
-    const { password, ...result } = user;
-    return result;
+    return this.buildAuthResponse(user);
   }
 
   async login(dto: LoginDto) {
@@ -72,8 +66,7 @@ export class AuthService {
     // (dili nato ihatag og hint kung naa ba tinuod nga account sa email)
     if (!user) {
       return {
-        message:
-          'If an account exists for that email, a reset link has been sent.',
+        message: 'If an account exists for that email, a reset link has been sent.',
       };
     }
 
@@ -92,8 +85,7 @@ export class AuthService {
     await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
     return {
-      message:
-        'If an account exists for that email, a reset link has been sent.',
+      message: 'If an account exists for that email, a reset link has been sent.',
     };
   }
 
