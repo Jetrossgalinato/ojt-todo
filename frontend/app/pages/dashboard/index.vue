@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { useAuthStore } from "~/stores/auth.store"
 import { useTasks } from "~/composables/useTasks"
@@ -137,7 +137,12 @@ async function toggleComplete(id: string) {
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
-      <Button @click="handleAddClick">+ Add Task</Button>
+      <Button
+        @click="handleAddClick"
+        class="rounded-full px-4 py-1.5 text-xs h-auto bg-[#0d6b61] hover:bg-[#0a5951] text-white border-0"
+      >
+        + Add Task
+      </Button>
     </div>
 
     <!-- Add / Edit Task Dialog -->
