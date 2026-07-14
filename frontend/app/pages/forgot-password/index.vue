@@ -1,41 +1,3 @@
-<script setup lang="ts">
-import { useForm } from "vee-validate"
-import { toTypedSchema } from "@vee-validate/zod"
-import * as z from "zod"
-import { useAuth } from "@/composables/useAuth"
-
-const { forgotPassword } = useAuth()
-
-const formSchema = toTypedSchema(
-  z.object({
-    email: z.string().email("Please enter a valid email address"),
-  })
-)
-
-const { handleSubmit } = useForm({
-  validationSchema: formSchema,
-})
-
-const isSubmitted = ref(false)
-const isSubmitting = ref(false)
-const errorMessage = ref("")
-
-const onSubmit = handleSubmit(async (values) => {
-  errorMessage.value = ""
-  isSubmitting.value = true
-
-  try {
-    await forgotPassword(values.email)
-    isSubmitted.value = true
-  } catch (error: any) {
-    errorMessage.value =
-      error?.data?.message || "Something went wrong. Please try again."
-  } finally {
-    isSubmitting.value = false
-  }
-})
-</script>
-
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
     <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
@@ -86,3 +48,45 @@ const onSubmit = handleSubmit(async (values) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: 'auth'
+})
+
+import { useForm } from "vee-validate"
+import { toTypedSchema } from "@vee-validate/zod"
+import * as z from "zod"
+import { useAuth } from "@/composables/useAuth"
+
+const { forgotPassword } = useAuth()
+
+const formSchema = toTypedSchema(
+  z.object({
+    email: z.string().email("Please enter a valid email address"),
+  })
+)
+
+const { handleSubmit } = useForm({
+  validationSchema: formSchema,
+})
+
+const isSubmitted = ref(false)
+const isSubmitting = ref(false)
+const errorMessage = ref("")
+
+const onSubmit = handleSubmit(async (values) => {
+  errorMessage.value = ""
+  isSubmitting.value = true
+
+  try {
+    await forgotPassword(values.email)
+    isSubmitted.value = true
+  } catch (error: any) {
+    errorMessage.value =
+      error?.data?.message || "Something went wrong. Please try again."
+  } finally {
+    isSubmitting.value = false
+  }
+})
+</script>
