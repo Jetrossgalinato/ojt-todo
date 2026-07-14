@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
 import { Eye, EyeOff } from "@lucide/vue"
+import { useAuth } from "@/composables/useAuth"
+
+const { register } = useAuth()
 
 const formSchema = toTypedSchema(
   z.object({
@@ -26,22 +30,14 @@ async function onSubmit(values: Record<string, any>) {
   isSubmitting.value = true
 
   try {
-    const response = await $fetch("http://localhost:4000/auth/register", {
-      method: "POST",
-      body: {
-        name: values.fullName,
-        email: values.email,
-        password: values.password,
-      },
+    await register(values.fullName, values.email, values.password)
+    toast.success("Account created", {
+      description: "Your account has been registered. Please sign in to continue.",
     })
-
-    console.log("Registration successful:", response)
     await navigateTo("/login")
   } catch (error: any) {
     errorMessage.value = error?.data?.message || "Registration failed"
-    console.error("Registration error:", error)
 
-    // trigger shake animation
     shakeError.value = false
     await nextTick()
     shakeError.value = true
@@ -52,7 +48,6 @@ async function onSubmit(values: Record<string, any>) {
 
 function registerWithGoogle() {
   // TODO: wire this to your backend's Google OAuth endpoint
-  // e.g. window.location.href = `${useRuntimeConfig().public.apiBase}/auth/google`
 }
 </script>
 
@@ -207,14 +202,8 @@ function registerWithGoogle() {
 
 <style scoped>
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out both;
