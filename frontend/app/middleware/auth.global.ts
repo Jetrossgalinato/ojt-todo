@@ -7,10 +7,16 @@ export default defineNuxtRouteMiddleware((to) => {
   const isPublicPage = publicPages.includes(to.path)
 
   if (!isAuthenticated && !isPublicPage) {
-    return navigateTo({ path: '/login', query: { toast: 'access-denied' } })
+    return showError(
+      createError({
+        statusCode: 404,
+        statusMessage: 'Page Not Found',
+        fatal: true,
+      })
+    )
   }
 
   if (isAuthenticated && isPublicPage) {
-    return navigateTo({ path: '/dashboard', query: { toast: 'already-logged-in' } })
+    return navigateTo('/dashboard')
   }
 })
