@@ -5,6 +5,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
 
+
 const { forgotPassword } = useAuth()
 
 const formSchema = toTypedSchema(
@@ -21,7 +22,6 @@ const errorMessage = ref("")
 const shakeError = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
-  errorMessage.value = ""
   isSubmitting.value = true
   try {
     await forgotPassword(values.email)
