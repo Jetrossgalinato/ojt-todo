@@ -2,7 +2,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   css: ["~/assets/css/tailwind.css", "~/assets/css/sonner.css"],
 
   runtimeConfig: {
@@ -13,6 +13,17 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        '@vueuse/core',
+        'class-variance-authority',
+        'clsx',
+        'lucide-vue-next',
+        'reka-ui',
+        'tailwind-merge',
+        'vue-sonner',
+      ],
+    },
   },
 
   modules: ["shadcn-nuxt", "@nuxtjs/color-mode", "@pinia/nuxt"],
