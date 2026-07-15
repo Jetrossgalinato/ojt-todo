@@ -5,12 +5,8 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
-<<<<<<< HEAD
 import { useRoute } from "vue-router"
-import { useAuthStore } from "@/stores/auth.store"
-=======
-import { getApiErrorMessage } from "@/lib/get-api-error"
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
+import { useAuthStore } from "@/stores/auth"
 
 const route = useRoute()
 const token = route.query.token as string | undefined
@@ -30,38 +26,22 @@ const formSchema = toTypedSchema(
 const { handleSubmit } = useForm({ validationSchema: formSchema })
 const isSuccess = ref(false)
 const isSubmitting = ref(false)
-<<<<<<< HEAD
 const errorMessage = ref("")
 const shakeError = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
   if (!token) return
   errorMessage.value = ""
-=======
-
-const onSubmit = handleSubmit(async (values) => {
-  if (!token) {
-    toast.error("Invalid or missing reset token.")
-    return
-  }
-
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
   isSubmitting.value = true
   
   try {
     await resetPassword(token, values.password)// Assuming you have access to these properties
     isSuccess.value = true
-<<<<<<< HEAD
   } catch (error: any) {
     errorMessage.value = error?.data?.message || "This reset link is invalid or has expired."
     shakeError.value = false
     await nextTick()
     shakeError.value = true
-=======
-    toast.success("Your password has been reset successfully.")
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "This reset link is invalid or has expired."))
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
   } finally {
     isSubmitting.value = false
   }
@@ -71,7 +51,6 @@ definePageMeta({ layout: false })
 </script>
 
 <template>
-<<<<<<< HEAD
   <div class="grid min-h-screen w-full lg:grid-cols-2">
     <div class="relative flex flex-col items-center justify-center bg-white px-6 py-12 sm:px-12 lg:px-20">
       <img src="/images/logo-todo.png" alt="Todo logo" class="absolute left-6 top-6 h-22 w-auto object-contain sm:left-12 sm:top-12 lg:left-20 lg:top-12" />
@@ -81,38 +60,6 @@ definePageMeta({ layout: false })
           <h1 class="text-3xl font-bold tracking-tight text-foreground">Invalid link</h1>
           <p class="text-sm text-muted-foreground">This password reset link is invalid or has expired.</p>
           <NuxtLink to="/forgot-password" class="text-sm font-medium text-teal-600 hover:text-teal-500 underline underline-offset-4">Request a new link</NuxtLink>
-=======
-  <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
-    <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-      <div v-if="!token" class="flex flex-col gap-4 text-center">
-        <h1 class="text-lg font-semibold text-foreground">Invalid link</h1>
-        <p class="text-sm text-muted-foreground">
-          This password reset link is invalid or has expired.
-        </p>
-        <NuxtLink to="/forgot-password" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
-          Request a new link
-        </NuxtLink>
-      </div>
-
-      <div v-else-if="isSuccess" class="flex flex-col gap-4 text-center">
-        <h1 class="text-lg font-semibold text-foreground">Password reset</h1>
-        <p class="text-sm text-muted-foreground">
-          Your password has been successfully reset.
-        </p>
-        <NuxtLink to="/login">
-          <Button class="w-full">
-            Go to login
-          </Button>
-        </NuxtLink>
-      </div>
-
-      <div v-else>
-        <div class="mb-6">
-          <h1 class="text-lg font-semibold text-foreground">Reset password</h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            Enter your new password below.
-          </p>
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
         </div>
 
         <div v-else-if="isSuccess" class="flex flex-col gap-4 text-center">
@@ -147,15 +94,11 @@ definePageMeta({ layout: false })
             </FormItem>
           </FormField>
 
-<<<<<<< HEAD
           <Transition name="fade-slide">
             <p v-if="errorMessage" class="text-sm text-destructive text-center">{{ errorMessage }}</p>
           </Transition>
 
           <Button type="submit" class="h-11 w-full rounded-xl text-base font-medium text-white transition-all duration-150 hover:opacity-90 active:scale-[0.98]" style="background: linear-gradient(135deg, #1c7a6e 0%, #3fa0a0 100%);" :disabled="isSubmitting">
-=======
-          <Button type="submit" class="w-full" :disabled="isSubmitting">
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
             {{ isSubmitting ? "Resetting..." : "Reset password" }}
           </Button>
         </form>
@@ -176,7 +119,6 @@ definePageMeta({ layout: false })
     </div>
   </div>
 </template>
-<<<<<<< HEAD
 
 <style scoped>
 @keyframes fade-in-up {
@@ -198,5 +140,3 @@ definePageMeta({ layout: false })
 .fade-slide-enter-from,
 .fade-slide-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>
-=======
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
