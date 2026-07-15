@@ -1,4 +1,0 @@
--- This migration is a no-op.
--- The CREATE TABLE statements originally here were duplicates of tables
--- already created in migration 000_init_login, causing a P3018 error
--- (relation "Todo" already exists) during migrate reset/deploy.
