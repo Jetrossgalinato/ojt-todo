@@ -2,8 +2,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
-  css: ["~/assets/css/tailwind.css"],
+  devtools: { enabled: false },
+  css: ["~/assets/css/tailwind.css", "~/assets/css/sonner.css"],
 
   runtimeConfig: {
     public: {
@@ -13,11 +13,30 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        '@vee-validate/zod',
+        'zod',
+        'vee-validate',
+        '@vueuse/core',
+        'class-variance-authority',
+        'clsx',
+        'lucide-vue-next',
+        'reka-ui',
+        'tailwind-merge',
+        'vue-sonner',
+      ],
+    },
   },
 
   modules: ["shadcn-nuxt", "@nuxtjs/color-mode", "@pinia/nuxt"],
   colorMode: {
     classSuffix: "",
+  },
+  app: {
+    pageTransition: { name: "page", mode: "out-in" },
   },
   shadcn: {
     prefix: "",

@@ -6,11 +6,8 @@ import type { Task, TaskForm } from "~/types/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
-const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
+const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask, toggleComplete: apiToggle } = useTasks()
 const authStore = useAuthStore()
-
-const lists = ["Personal", "Work", "Errands"]
-const defaultList = lists[0] ?? "Personal"
 
 const tasks = ref<Task[]>([])
 
@@ -22,7 +19,7 @@ onMounted(async () => {
   }
 })
 
-const pendingCount = computed(() => tasks.value.filter((t) => !t.completed).length)
+const pendingCount = computed(() => tasks.value.filter((t) => t.status === "pending").length)
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -33,12 +30,12 @@ const form = ref<TaskForm>({
   dueDate: "",
   dueTime: "",
   priority: "medium",
+  listId: "",
   tags: "",
-  list: defaultList,
 })
 
 function handleAddClick() {
-  if (!authStore.accessToken) return navigateTo('/login')
+  if (!authStore.accessToken) return navigateTo("/login")
   openAddDialog()
 }
 
@@ -47,11 +44,11 @@ function openAddDialog() {
   form.value = {
     title: "",
     description: "",
-    dueDate: "",
+    dueDate: new Date().toISOString().split("T")[0],
     dueTime: "",
     priority: "medium",
+    listId: "",
     tags: "",
-    list: defaultList,
   }
   dialogOpen.value = true
 }
@@ -65,8 +62,8 @@ function resetForm() {
     dueDate: "",
     dueTime: "",
     priority: "medium",
+    listId: "",
     tags: "",
-    list: defaultList,
   }
 }
 
@@ -75,22 +72,20 @@ function editTask(task: Task) {
   dialogOpen.value = true
   form.value = {
     title: task.title,
-    description: task.description,
-    dueDate: task.dueDate,
-    dueTime: task.dueTime,
+    description: task.description ?? "",
+    dueDate: task.dueDate ?? "",
+    dueTime: task.dueTime ?? "",
     priority: task.priority,
-    tags: task.tags,
-    list: task.list,
+    listId: task.listId ?? "",
+    tags: task.tags.map((t) => t.name).join(", "),
   }
 }
 
 async function saveTask() {
   if (!form.value.title.trim()) return
 
-  // Require authentication before creating/updating tasks
   if (!authStore.accessToken) {
-    // Redirect to login so user can authenticate
-    return navigateTo('/login')
+    return navigateTo("/login")
   }
 
   try {
@@ -118,12 +113,10 @@ async function deleteTask(id: string) {
 }
 
 async function toggleComplete(id: string) {
-  const task = tasks.value.find((t) => t.id === id)
-  if (!task) return
-
   try {
-    const updated = await updateTask(id, { ...task, completed: !task.completed })
-    Object.assign(task, updated)
+    const updated = await apiToggle(id)
+    const task = tasks.value.find((t) => t.id === id)
+    if (task) Object.assign(task, updated)
   } catch (err) {
     console.error("Failed to update task:", err)
   }
@@ -132,30 +125,27 @@ async function toggleComplete(id: string) {
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between animate-card-in stagger-1">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
       <Button
-  @click="handleAddClick"
-  class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
->
-  + Add Task
-</Button>
+        @click="handleAddClick"
+        class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0 animate-btn-press"
+      >
+        + Add Task
+      </Button>
     </div>
 
-    <!-- Add / Edit Task Dialog -->
     <TaskDialog
       v-model:open="dialogOpen"
       v-model:form="form"
       :editing-id="editingId"
-      :lists="lists"
       @save="saveTask"
       @cancel="resetForm"
     />
 
-    <!-- Task list -->
     <TaskTable
       :tasks="tasks"
       @edit="editTask"

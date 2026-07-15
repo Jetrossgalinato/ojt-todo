@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Star } from 'lucide-vue-next'
 import type { Task } from "~/types/tasks.type"
+import { ref } from "vue"
 
 defineProps<{
   tasks: Task[]
@@ -12,6 +13,9 @@ const emit = defineEmits<{
   toggle: [id: string]
 }>()
 
+const completingIds = ref(new Set<string>())
+const deletingIds = ref(new Set<string>())
+
 const priorityStyles: Record<string, string> = {
   low: "bg-emerald-50 text-emerald-700",
   medium: "bg-amber-50 text-amber-700",
@@ -22,6 +26,19 @@ const listStyles: Record<string, string> = {
   Work: "bg-sky-50 text-sky-700",
   Personal: "bg-violet-50 text-violet-700",
   Errands: "bg-orange-50 text-orange-700",
+}
+
+function handleToggle(id: string) {
+  completingIds.value.add(id)
+  emit('toggle', id)
+  setTimeout(() => completingIds.value.delete(id), 400)
+}
+
+function handleDelete(id: string) {
+  deletingIds.value.add(id)
+  setTimeout(() => {
+    emit('delete', id)
+  }, 300)
 }
 </script>
 
@@ -49,22 +66,36 @@ const listStyles: Record<string, string> = {
         </template>
 
         <template v-else>
-          <TableRow v-for="task in tasks" :key="task.id">
+          <TableRow
+            v-for="(task, index) in tasks"
+            :key="task.id"
+            class="animate-task-in"
+            :class="[
+              deletingIds.has(task.id) ? 'animate-task-out' : '',
+              `stagger-${Math.min(index + 1, 8)}`
+            ]"
+          >
             <TableCell class="w-10">
-              <input
-                type="checkbox"
-                :checked="task.completed"
-                class="h-5 w-5 rounded-md border-border accent-teal-600 cursor-pointer"
-                @change="emit('toggle', task.id)"
+              <button
+                class="h-5 w-5 rounded-md border border-border flex items-center justify-center cursor-pointer transition-colors"
+                :class="task.status === 'completed' ? 'bg-teal-600 border-teal-600' : 'bg-white hover:border-teal-400'"
+                @click="handleToggle(task.id)"
               >
+                <svg v-if="task.status === 'completed'" class="animate-checkbox w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
             </TableCell>
 
             <TableCell>
               <div class="flex items-center gap-2">
                 <div class="flex flex-col">
                   <p
-                    class="text-sm font-medium text-foreground"
-                    :class="task.completed ? 'text-muted-foreground line-through' : ''"
+                    class="text-sm font-medium transition-colors duration-200"
+                    :class="[
+                      task.status === 'completed' ? 'text-muted-foreground' : 'text-foreground',
+                      task.status === 'completed' ? 'animate-strike' : ''
+                    ]"
                   >
                     {{ task.title }}
                   </p>
@@ -90,10 +121,11 @@ const listStyles: Record<string, string> = {
 
             <TableCell>
               <span
+                v-if="task.list"
                 class="rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="listStyles[task.list] ?? 'bg-muted text-muted-foreground'"
+                :class="listStyles[task.list.name] ?? 'bg-muted text-muted-foreground'"
               >
-                {{ task.list }}
+                {{ task.list.name }}
               </span>
             </TableCell>
 
@@ -101,14 +133,20 @@ const listStyles: Record<string, string> = {
               <div class="whitespace-nowrap">{{ task.dueDate }} {{ task.dueTime }}</div>
             </TableCell>
 
-            <TableCell class="text-sm text-muted-foreground">{{ task.tags }}</TableCell>
+            <TableCell class="text-sm text-muted-foreground">
+              <div class="flex flex-wrap gap-1">
+                <span v-for="tag in task.tags" :key="tag.id" class="rounded-full bg-muted px-2 py-0.5 text-xs">
+                  {{ tag.name }}
+                </span>
+              </div>
+            </TableCell>
 
             <TableCell class="text-right">
               <div class="flex items-center justify-end gap-1">
-                <Button variant="ghost" size="sm" class="rounded-lg" @click="emit('edit', task)">
+                <Button variant="ghost" size="sm" class="rounded-lg animate-btn-press" @click="emit('edit', task)">
                   Edit
                 </Button>
-                <Button variant="ghost" size="sm" class="rounded-lg text-destructive hover:text-destructive" @click="emit('delete', task.id)">
+                <Button variant="ghost" size="sm" class="rounded-lg text-destructive hover:text-destructive animate-btn-press" @click="handleDelete(task.id)">
                   Delete
                 </Button>
               </div>

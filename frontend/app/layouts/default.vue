@@ -37,10 +37,10 @@ function handleLogout() {
           v-for="item in navItems"
           :key="item.label"
           :to="item.to"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium animate-nav-link"
           :class="isActive(item.to)
-            ? 'bg-white text-teal-800'
-            : 'text-teal-100 hover:bg-teal-700'"
+            ? 'bg-white text-teal-800 shadow-sm'
+            : 'text-teal-100 hover:bg-teal-700 hover:text-white'"
         >
           <component :is="item.icon" class="w-4 h-4" />
           {{ item.label }}
