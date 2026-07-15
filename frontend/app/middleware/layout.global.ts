@@ -1,5 +1,5 @@
-export default defineNuxtRouteMiddleware((to )=>{
-if (to.path.startsWith('/dashboard')){
-    setPageLayout('inner-layout')
-}
+export default defineNuxtRouteMiddleware((to) => {
+  if (to.path.startsWith('/dashboard')) {
+    setPageLayout('default')
+  }
 })

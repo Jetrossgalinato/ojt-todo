@@ -1,0 +1,21 @@
+[data-sonner-toast][data-type="error"] [data-icon] svg {
+  color: #ef4444 !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] svg {
+  color: #22c55e !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] svg path,
+[data-sonner-toast][data-type="error"] [data-icon] svg circle,
+[data-sonner-toast][data-type="error"] [data-icon] svg line {
+  stroke: #ef4444 !important;
+  fill: none !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] svg path,
+[data-sonner-toast][data-type="success"] [data-icon] svg circle,
+[data-sonner-toast][data-type="success"] [data-icon] svg line {
+  stroke: #22c55e !important;
+  fill: none !important;
+}

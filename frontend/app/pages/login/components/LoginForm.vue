@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
+<<<<<<< HEAD
 import { Eye, EyeOff } from "@lucide/vue"
+=======
+import { Eye, EyeOff } from "lucide-vue-next"
+import { toast } from "vue-sonner"
+>>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
 import { useAuth } from "@/composables/useAuth"
-import { useAuthStore } from "@/stores/auth.store"
+import { useAuthStore } from "@/stores/auth"
 
 const formSchema = toTypedSchema(
   z.object({
@@ -28,10 +33,17 @@ async function onSubmit(values: Record<string, any>) {
   try {
     const response = await login(values.email, values.password)
     authStore.setAuth(response.accessToken, response.user)
+    toast.success("Login successful", {
+      description: `Welcome back, ${response.user?.name || response.user?.email}!`,
+    })
     navigateTo("/dashboard")
   } catch (error: any) {
     errorMessage.value =
       error?.data?.message || "Invalid email or password. Please try again."
+
+    toast.error("Login failed", {
+      description: errorMessage.value,
+    })
 
     // trigger shake animation
     shakeError.value = false

@@ -11,6 +11,16 @@ export function useAuth() {
     })
   }
 
+  async function register(name: string, email: string, password: string) {
+    return await $fetch<{ message: string }>(
+      `${config.public.apiBase}/auth/register`,
+      {
+        method: "POST",
+        body: { name, email, password },
+      }
+    )
+  }
+
   async function forgotPassword(email: string) {
     return await $fetch<{ message: string }>(
       `${config.public.apiBase}/auth/forgot-password`,
@@ -33,6 +43,7 @@ export function useAuth() {
 
   return {
     login,
+    register,
     forgotPassword,
     resetPassword,
   }

@@ -1,26 +1,24 @@
-<script setup>
-import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth.store'
-import { LogOut } from 'lucide-vue-next'
+<script setup lang="ts">
+import { ref } from "vue"
+import { toast } from "vue-sonner"
+import { LogOut } from "lucide-vue-next"
 
-const searchQuery = ref('')
+const searchQuery = ref("")
 const router = useRouter()
 const authStore = useAuthStore()
 
-const handleSearch = () => {
+function handleSearch() {
   const query = searchQuery.value.trim()
-
   if (!query) return
-
-  console.log('Searching for:', query)
 }
 
-const handleLogout = async () => {
+async function handleLogout() {
   try {
     authStore.logout()
-    await router.push('/login')
-  } catch (error) {
-    console.error('Logout failed:', error)
+    toast.success("Signed out successfully")
+    await router.push("/login")
+  } catch (error: unknown) {
+    toast.error("Logout failed. Please try again.")
   }
 }
 </script>
@@ -34,14 +32,14 @@ const handleLogout = async () => {
         Todo
       </span>
 
-    <div class="hidden items-center gap-6 sm:flex">
+      <div class="hidden items-center gap-6 sm:flex">
         <NuxtLink
           to="/dashboard"
           class="text-sm font-medium text-muted-foreground hover:text-foreground"
           active-class="text-foreground font-semibold"
         >
-          Dashboard 
-        </NuxtLink> 
+          Dashboard
+        </NuxtLink>
         <NuxtLink
           to="/my-tasks"
           class="text-sm font-medium text-muted-foreground hover:text-foreground"

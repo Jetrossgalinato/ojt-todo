@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common"
-import { TodosController } from "./todos.controller"
-import { TodosService } from "./dto/todos.service"
-import { DatabaseModule } from "../../database/database.module"
+import { Module } from '@nestjs/common';
+import { TodosController } from './todos.controller';
+import { TodosService } from './dto/todos.service';
+import { DatabaseModule } from '../../database/database.module';
 
 @Module({
   imports: [DatabaseModule],
