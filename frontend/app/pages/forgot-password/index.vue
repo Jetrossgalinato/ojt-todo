@@ -20,29 +20,20 @@ const { handleSubmit } = useForm({ validationSchema: formSchema })
 
 const isSubmitted = ref(false)
 const isSubmitting = ref(false)
-<<<<<<< HEAD
 const errorMessage = ref("")
 const shakeError = ref(false)
-=======
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
 
 const onSubmit = handleSubmit(async (values) => {
   isSubmitting.value = true
   try {
     await forgotPassword(values.email)
     isSubmitted.value = true
-<<<<<<< HEAD
   } catch (error: any) {
     errorMessage.value = error?.data?.message || "Something went wrong. Please try again."
     // trigger shake animation
     shakeError.value = false
     await nextTick()
     shakeError.value = true
-=======
-    toast.success("If an account exists, a reset link has been sent to your email.")
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."))
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
   } finally {
     isSubmitting.value = false
   }
@@ -52,7 +43,6 @@ definePageMeta({ layout: false })
 </script>
 
 <template>
-<<<<<<< HEAD
   <div class="grid min-h-screen w-full lg:grid-cols-2">
     <!-- LEFT: Forgot password form -->
     <div class="relative flex flex-col items-center justify-center bg-white px-6 py-12 sm:px-12 lg:px-20">
@@ -65,25 +55,6 @@ definePageMeta({ layout: false })
           <h1 class="text-3xl font-bold tracking-tight text-foreground">Check your email</h1>
           <p class="text-sm text-muted-foreground">
             If an account exists for that email, we've sent a link to reset your password.
-=======
-  <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
-    <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-      <div v-if="isSubmitted" class="flex flex-col gap-4 text-center">
-        <h1 class="text-lg font-semibold text-foreground">Check your email</h1>
-        <p class="text-sm text-muted-foreground">
-          If an account exists for that email, we've sent a link to reset your password.
-        </p>
-        <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
-          Back to login
-        </NuxtLink>
-      </div>
-
-      <div v-else>
-        <div class="mb-6">
-          <h1 class="text-lg font-semibold text-foreground">Forgot password?</h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            Enter your email and we'll send you a link to reset your password.
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
           </p>
           <NuxtLink
             to="/login"
@@ -108,7 +79,6 @@ definePageMeta({ layout: false })
             </p>
           </div>
 
-<<<<<<< HEAD
          <FormField name="email" v-slot="{ componentField }">
   <FormItem>
     <FormLabel>Email</FormLabel>
@@ -136,9 +106,6 @@ definePageMeta({ layout: false })
             style="background: linear-gradient(135deg, #1c7a6e 0%, #3fa0a0 100%);"
             :disabled="isSubmitting"
           >
-=======
-          <Button type="submit" class="w-full" :disabled="isSubmitting">
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
             {{ isSubmitting ? "Sending..." : "Send reset link" }}
           </Button>
 
@@ -174,7 +141,6 @@ definePageMeta({ layout: false })
     </div>
   </div>
 </template>
-<<<<<<< HEAD
 
 <style scoped>
 @keyframes fade-in-up {
@@ -196,5 +162,3 @@ definePageMeta({ layout: false })
 .fade-slide-enter-from,
 .fade-slide-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>
-=======
->>>>>>> 81d413c38ea22f81142d29e58953bb5da768eba0
