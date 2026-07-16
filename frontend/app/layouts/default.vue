@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ClipboardList, CheckSquare, Calendar, Clock, CheckCircle2, Settings, LogOut } from 'lucide-vue-next'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '~/stores/auth.store'
+import { useAuthStore } from '~/stores/auth'
 
 const route = useRoute()
 const authStore = useAuthStore()

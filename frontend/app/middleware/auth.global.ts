@@ -6,6 +6,10 @@ export default defineNuxtRouteMiddleware((to) => {
   const publicPages = ['/login', '/register', '/forgot-password', '/reset-password']
   const isPublicPage = publicPages.includes(to.path)
 
+  if (to.path === '/') {
+    return navigateTo('/login')
+  }
+
   if (!isAuthenticated && !isPublicPage) {
     return showError(
       createError({
