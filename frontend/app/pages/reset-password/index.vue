@@ -5,8 +5,10 @@ definePageMeta({
 
 import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
+import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
+import { getApiErrorMessage } from "@/lib/get-api-error"
 
 const route = useRoute()
 const token = route.query.token as string | undefined
@@ -30,23 +32,21 @@ const { handleSubmit } = useForm({
 
 const isSuccess = ref(false)
 const isSubmitting = ref(false)
-const errorMessage = ref("")
 
 const onSubmit = handleSubmit(async (values) => {
   if (!token) {
-    errorMessage.value = "Invalid or missing reset token."
+    toast.error("Invalid or missing reset token.")
     return
   }
 
-  errorMessage.value = ""
   isSubmitting.value = true
 
   try {
     await resetPassword(token, values.password)
     isSuccess.value = true
-  } catch (error: any) {
-    errorMessage.value =
-      error?.data?.message || "This reset link is invalid or has expired."
+    toast.success("Your password has been reset successfully.")
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "This reset link is invalid or has expired."))
   } finally {
     isSubmitting.value = false
   }
@@ -56,7 +56,6 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
     <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-      <!-- No token -->
       <div v-if="!token" class="flex flex-col gap-4 text-center">
         <h1 class="text-lg font-semibold text-foreground">Invalid link</h1>
         <p class="text-sm text-muted-foreground">
@@ -67,7 +66,6 @@ const onSubmit = handleSubmit(async (values) => {
         </NuxtLink>
       </div>
 
-      <!-- Success state -->
       <div v-else-if="isSuccess" class="flex flex-col gap-4 text-center">
         <h1 class="text-lg font-semibold text-foreground">Password reset</h1>
         <p class="text-sm text-muted-foreground">
@@ -80,7 +78,6 @@ const onSubmit = handleSubmit(async (values) => {
         </NuxtLink>
       </div>
 
-      <!-- Form state -->
       <div v-else>
         <div class="mb-6">
           <h1 class="text-lg font-semibold text-foreground">Reset password</h1>
@@ -109,10 +106,6 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
-
-          <p v-if="errorMessage" class="text-sm text-destructive text-center">
-            {{ errorMessage }}
-          </p>
 
           <Button type="submit" class="w-full" :disabled="isSubmitting">
             {{ isSubmitting ? "Resetting..." : "Reset password" }}

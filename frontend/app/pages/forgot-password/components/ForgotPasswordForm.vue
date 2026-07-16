@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
+import { toast } from "vue-sonner"
 import { useAuth } from "@/composables/useAuth"
+import { getApiErrorMessage } from "@/lib/get-api-error"
 
 const formSchema = toTypedSchema(
   z.object({
@@ -13,18 +15,16 @@ const { forgotPassword } = useAuth()
 
 const isSubmitted = ref(false)
 const isSubmitting = ref(false)
-const errorMessage = ref("")
 
 async function onSubmit(values: Record<string, any>) {
-  errorMessage.value = ""
   isSubmitting.value = true
 
   try {
     await forgotPassword(values.email)
     isSubmitted.value = true
-  } catch (error: any) {
-    errorMessage.value =
-      error?.data?.message || "Something went wrong. Please try again."
+    toast.success("If an account exists, a reset link has been sent to your email.")
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Something went wrong. Please try again."))
   } finally {
     isSubmitting.value = false
   }
@@ -81,12 +81,6 @@ async function onSubmit(values: Record<string, any>) {
           </FormItem>
         </FormField>
 
-        <Transition name="fade-slide">
-          <p v-if="errorMessage" class="text-sm text-destructive text-center">
-            {{ errorMessage }}
-          </p>
-        </Transition>
-
         <Button
           type="submit"
           class="h-11 w-full rounded-xl text-base font-medium text-white transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
@@ -120,15 +114,5 @@ async function onSubmit(values: Record<string, any>) {
 }
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out both;
-}
-
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
 }
 </style>
