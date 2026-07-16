@@ -5,6 +5,21 @@ import LoginForm from "./components/LoginForm.vue"
 definePageMeta({
   layout: false,
 })
+
+// Force light mode on auth pages — the design is always a white panel
+// with dark text, regardless of the user's system/browser dark mode
+// preference. Without this, text-foreground can flip to white on the
+// hardcoded white background, making it invisible.
+const colorMode = useColorMode()
+const previousPreference = colorMode.preference
+
+onMounted(() => {
+  colorMode.preference = "light"
+})
+
+onUnmounted(() => {
+  colorMode.preference = previousPreference
+})
 </script>
 
 <template>
@@ -47,7 +62,6 @@ definePageMeta({
         />
       </div>
 
-    
 
       <!-- Illustration (transparent background, overlays the blobs) -->
       <div class="relative z-10 flex flex-1 items-center justify-center px-10">
@@ -57,8 +71,6 @@ definePageMeta({
           class="w-full max-w-xl object-contain"
         >
       </div>
-
-      
     </div>
   </div>
 </template>
