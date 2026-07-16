@@ -1,87 +1,58 @@
 <script setup lang="ts">
-import { useForm } from "vee-validate"
-import { toTypedSchema } from "@vee-validate/zod"
-import * as z from "zod"
-import { useAuth } from "@/composables/useAuth"
+import ForgotPasswordForm from "./components/ForgotPasswordForm.vue"
 
-const { forgotPassword } = useAuth()
-
-const formSchema = toTypedSchema(
-  z.object({
-    email: z.string().email("Please enter a valid email address"),
-  })
-)
-
-const { handleSubmit } = useForm({
-  validationSchema: formSchema,
-})
-
-const isSubmitted = ref(false)
-const isSubmitting = ref(false)
-const errorMessage = ref("")
-
-const onSubmit = handleSubmit(async (values) => {
-  errorMessage.value = ""
-  isSubmitting.value = true
-
-  try {
-    await forgotPassword(values.email)
-    isSubmitted.value = true
-  } catch (error: any) {
-    errorMessage.value =
-      error?.data?.message || "Something went wrong. Please try again."
-  } finally {
-    isSubmitting.value = false
-  }
+definePageMeta({
+  layout: false,
 })
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex items-center justify-center bg-background px-4">
-    <div class="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
-      <!-- Success state -->
-      <div v-if="isSubmitted" class="flex flex-col gap-4 text-center">
-        <h1 class="text-lg font-semibold text-foreground">Check your email</h1>
-        <p class="text-sm text-muted-foreground">
-          If an account exists for that email, we've sent a link to reset your password.
-        </p>
-        <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
-          Back to login
-        </NuxtLink>
+  <div class="grid min-h-screen w-full lg:grid-cols-2">
+    <!-- LEFT: Forgot password form panel -->
+    <div class="relative flex flex-col items-center justify-center bg-white px-6 py-12 sm:px-12 lg:px-20">
+      <img
+        src="/images/logo-todo.png"
+        alt="Todo logo"
+        class="absolute left-6 top-6 h-22 w-auto object-contain sm:left-12 sm:top-12 lg:left-20 lg:top-12"
+      >
+
+      <div class="w-full max-w-md">
+        <ForgotPasswordForm />
+      </div>
+    </div>
+
+    <!-- RIGHT: Brand / Illustration panel -->
+    <div
+      class="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-center"
+      style="background: linear-gradient(135deg, #1e5a7a 0%, #1c7a6e 45%, #3fa0a0 100%);"
+    >
+      <!-- Decorative gradient blobs -->
+      <div class="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          class="absolute -top-16 right-0 h-72 w-72 rounded-full opacity-90 blur-md"
+          style="background: radial-gradient(circle at 30% 30%, #d4e157, #7cb342 70%);"
+        />
+        <div
+          class="absolute top-1/4 left-1/3 h-96 w-96 rounded-full opacity-60 blur-lg"
+          style="background: radial-gradient(circle at 50% 50%, #4fd1c5, #2b8a99 70%);"
+        />
+        <div
+          class="absolute bottom-0 left-0 h-80 w-80 -translate-x-1/4 translate-y-1/4 rounded-full opacity-90 blur-md"
+          style="background: radial-gradient(circle at 40% 40%, #cddc39, #8bc34a 70%);"
+        />
+        <div
+          class="absolute bottom-10 right-10 h-64 w-64 rounded-full opacity-80 blur-md"
+          style="background: radial-gradient(circle at 40% 40%, #aee571, #5fae5a 70%);"
+        />
       </div>
 
-      <!-- Form state -->
-      <div v-else>
-        <div class="mb-6">
-          <h1 class="text-lg font-semibold text-foreground">Forgot password?</h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            Enter your email and we'll send you a link to reset your password.
-          </p>
-        </div>
-
-        <form class="flex flex-col gap-5" @submit="onSubmit">
-          <FormField v-slot="{ componentField }" name="email">
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="m@example.com" v-bind="componentField" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <p v-if="errorMessage" class="text-sm text-destructive text-center">
-            {{ errorMessage }}
-          </p>
-
-          <Button type="submit" class="w-full" :disabled="isSubmitting">
-            {{ isSubmitting ? "Sending..." : "Send reset link" }}
-          </Button>
-
-          <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 text-center">
-            Back to login
-          </NuxtLink>
-        </form>
+      <!-- Illustration (transparent background, overlays the blobs) -->
+      <div class="relative z-10 flex flex-1 items-center justify-center px-10">
+        <img
+          src="/images/illustration.png"
+          alt="Plan your day, manage your tasks, and never miss an important deadline."
+          class="w-full max-w-xl object-contain"
+        >
       </div>
     </div>
   </div>
