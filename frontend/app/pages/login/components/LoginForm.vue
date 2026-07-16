@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
-import { Eye, EyeOff } from "lucide-vue-next"
+import { Eye, EyeOff } from "@lucide/vue"
 import { toast } from "vue-sonner"
 import { useAuth } from "@/composables/useAuth"
 import { useAuthStore } from "@/stores/auth"
