@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Delete,
   Body,
@@ -21,12 +22,12 @@ interface AuthRequest extends Request {
 }
 
 @UseGuards(JwtAuthGuard)
-@Controller('tasks')
+@Controller('todos')
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Request() req: AuthRequest,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -36,7 +37,7 @@ export class TasksController {
     @Query('status') status?: string,
     @Query('sort') sort?: string,
   ) {
-    return this.tasksService.findAll(req.user.id, {
+    const result = await this.tasksService.findAll(req.user.id, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       priority,
@@ -45,6 +46,7 @@ export class TasksController {
       status,
       sort,
     });
+    return result.data;
   }
 
   @Get('stats')
@@ -101,7 +103,7 @@ export class TasksController {
     return this.tasksService.create(req.user.id, dto);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Request() req: AuthRequest,
     @Param('id', ParseUUIDPipe) id: string,

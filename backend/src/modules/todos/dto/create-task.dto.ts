@@ -7,6 +7,7 @@ import {
   IsDateString,
   MaxLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateTaskDto {
   @IsString()
@@ -48,6 +49,20 @@ export class CreateTaskDto {
   tagIds?: string[];
 
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) => {
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+    }
+    if (Array.isArray(value)) {
+      return value
+        .map((s: unknown) => (typeof s === 'string' ? s.trim() : s))
+        .filter(Boolean);
+    }
+    return value as string[] | undefined;
+  })
   @IsArray()
   @IsString({ each: true })
   tags?: string[];
