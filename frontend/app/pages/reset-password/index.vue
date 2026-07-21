@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref, nextTick } from "vue"
-import { useForm, Field as FormField, ErrorMessage as FormMessage } from "vee-validate"
+import { nextTick } from "vue"
+import { useForm } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import { toast } from "vue-sonner"
 import * as z from "zod"
 import { useAuth } from "@/composables/useAuth"
 import { useRoute } from "vue-router"
-import { useAuthStore } from "@/stores/auth"
+
+definePageMeta({ layout: false })
 
 const route = useRoute()
 const token = route.query.token as string | undefined
 const { resetPassword } = useAuth()
-const authStore = useAuthStore()
 
 const formSchema = toTypedSchema(
   z.object({
@@ -33,10 +33,11 @@ const onSubmit = handleSubmit(async (values) => {
   if (!token) return
   errorMessage.value = ""
   isSubmitting.value = true
-  
+
   try {
-    await resetPassword(token, values.password)// Assuming you have access to these properties
+    await resetPassword(token, values.password)
     isSuccess.value = true
+    toast.success("Your password has been successfully reset.")
   } catch (error: any) {
     errorMessage.value = error?.data?.message || "This reset link is invalid or has expired."
     shakeError.value = false
@@ -46,8 +47,6 @@ const onSubmit = handleSubmit(async (values) => {
     isSubmitting.value = false
   }
 })
-
-definePageMeta({ layout: false })
 </script>
 
 <template>
@@ -56,13 +55,13 @@ definePageMeta({ layout: false })
       <img src="/images/logo-todo.png" alt="Todo logo" class="absolute left-6 top-6 h-22 w-auto object-contain sm:left-12 sm:top-12 lg:left-20 lg:top-12" />
 
       <div class="w-full max-w-md animate-fade-in-up">
-        <div v-if="!token" class="flex flex-col gap-4 text-center">
+        <div v-if="!token" class="flex flex-col items-center gap-4 text-center">
           <h1 class="text-3xl font-bold tracking-tight text-foreground">Invalid link</h1>
           <p class="text-sm text-muted-foreground">This password reset link is invalid or has expired.</p>
-          <NuxtLink to="/forgot-password" class="text-sm font-medium text-teal-600 hover:text-teal-500 underline underline-offset-4">Request a new link</NuxtLink>
+          <NuxtLink to="/forgot-password" class="mt-2 text-sm font-medium text-teal-600 hover:text-teal-500">Request a new link</NuxtLink>
         </div>
 
-        <div v-else-if="isSuccess" class="flex flex-col gap-4 text-center">
+        <div v-else-if="isSuccess" class="flex flex-col items-center gap-4 text-center">
           <h1 class="text-3xl font-bold tracking-tight text-foreground">Password reset</h1>
           <p class="text-sm text-muted-foreground">Your password has been successfully reset.</p>
           <NuxtLink to="/login">

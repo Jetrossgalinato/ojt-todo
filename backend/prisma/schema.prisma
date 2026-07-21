@@ -15,23 +15,78 @@ model User {
   resetPasswordExpires DateTime? @db.Timestamp(6)
   createdAt            DateTime  @default(now()) @db.Timestamp(6)
   updatedAt            DateTime  @default(now()) @db.Timestamp(6)
-  todos                Todo[]
+  tasks                Task[]
+  lists                List[]
+  tags                 Tag[]
+  preferences          UserPreferences?
 }
 
-model Todo {
-  id          String    @id
+model UserPreferences {
+  id                String  @id @default(uuid())
+  userId            String  @unique
+  defaultView       String  @default("today")
+  timezone          String  @default("UTC")
+  theme             String  @default("system")
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model List {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @db.Timestamp(6)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Tag {
+  id        String     @id @default(uuid())
+  name      String
+  userId    String
+  createdAt DateTime   @default(now()) @db.Timestamp(6)
+  User      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     TaskTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Task {
+  id          String    @id @default(uuid())
   title       String
   description String?
-  completed   Boolean   @default(false)
-  userId      String
-  dueDate     DateTime?
-  dueTime     String?
   priority    String    @default("medium")
-  tags        String?
-  listName    String?
+  status      String    @default("pending")
+  dueDate     DateTime?
+  dueTime     String?   @db.VarChar(8)
+  completedAt DateTime?
+  starred     Boolean   @default(false)
+  userId      String
+  listId      String?
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
   updatedAt   DateTime  @default(now()) @db.Timestamp(6)
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  list        List?     @relation(fields: [listId], references: [id], onDelete: SetNull)
+  tags        TaskTag[]
 
   @@index([userId])
+  @@index([listId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([completedAt])
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+  Task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  Tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
 }

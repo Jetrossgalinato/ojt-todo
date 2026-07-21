@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
@@ -62,17 +67,15 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    // Security: parehas ra ang response bisan naa ba o walay account
-    // (dili nato ihatag og hint kung naa ba tinuod nga account sa email)
     if (!user) {
       return {
-        message: 'If an account exists for that email, a reset link has been sent.',
+        message:
+          'If an account exists for that email, a reset link has been sent.',
       };
     }
 
-    // Generate random token (32 bytes = 64 hex characters)
     const resetToken = randomBytes(32).toString('hex');
-    const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    const resetExpires = new Date(Date.now() + 30 * 60 * 1000);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -85,7 +88,8 @@ export class AuthService {
     await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
     return {
-      message: 'If an account exists for that email, a reset link has been sent.',
+      message:
+        'If an account exists for that email, a reset link has been sent.',
     };
   }
 
@@ -114,6 +118,112 @@ export class AuthService {
     });
 
     return { message: 'Password has been reset successfully' };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, createdAt: true },
+    });
+    if (!user) throw new UnauthorizedException('User not found');
+    return user;
+  }
+
+  async updateProfile(userId: string, dto: { name?: string; email?: string }) {
+    if (dto.email) {
+      const existing = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (existing && existing.id !== userId) {
+        throw new ConflictException('Email is already in use');
+      }
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name } : {}),
+        ...(dto.email !== undefined ? { email: dto.email } : {}),
+      },
+      select: { id: true, email: true, name: true, createdAt: true },
+    });
+
+    return updated;
+  }
+
+  async changePassword(
+    userId: string,
+    dto: { currentPassword: string; newPassword: string },
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const isValid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    if (dto.newPassword.length < 8) {
+      throw new BadRequestException(
+        'New password must be at least 8 characters',
+      );
+    }
+
+    const hashed = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashed },
+    });
+
+    return { message: 'Password changed successfully' };
+  }
+
+  async getPreferences(userId: string) {
+    let prefs = await this.prisma.userPreferences.findUnique({
+      where: { userId },
+    });
+
+    if (!prefs) {
+      prefs = await this.prisma.userPreferences.create({
+        data: { userId },
+      });
+    }
+
+    return prefs;
+  }
+
+  async updatePreferences(
+    userId: string,
+    dto: {
+      defaultView?: string;
+      timezone?: string;
+      theme?: string;
+      emailNotifications?: boolean;
+      pushNotifications?: boolean;
+    },
+  ) {
+    await this.prisma.userPreferences.upsert({
+      where: { userId },
+      create: { userId, ...dto },
+      update: dto,
+    });
+
+    return this.getPreferences(userId);
+  }
+
+  async deleteAccount(userId: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      throw new UnauthorizedException('Incorrect password');
+    }
+
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    return { message: 'Account deleted successfully' };
   }
 
   private buildAuthResponse(user: {
