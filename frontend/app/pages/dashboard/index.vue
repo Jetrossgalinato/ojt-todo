@@ -1,30 +1,23 @@
 ﻿<script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { toast } from "vue-sonner"
-import { useTasks } from "~/composables/useTasks"
-import { getApiErrorMessage } from "~/lib/get-api-error"
+import { useTasksStore } from "~/stores/tasks"
 import { tagsToFormInput } from "~/lib/tags"
-import type { Task, TaskForm } from "~/types/tasks.type"
+import type { TaskForm } from "~/types/tasks.type"
+import type { TaskItem } from "~/lib/task-filters"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
-const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
-const authStore = useAuthStore()
+const store = useTasksStore()
 
 const lists = ["Personal", "Work", "Errands"]
 const defaultList = lists[0] ?? "Personal"
 
-const tasks = ref<Task[]>([])
-
-onMounted(async () => {
-  try {
-    tasks.value = await fetchTasks()
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to load tasks."))
-  }
+onMounted(() => {
+  store.fetchTasks()
 })
 
-const pendingCount = computed(() => tasks.value.filter((t) => !t.completed).length)
+const pendingCount = computed(() => store.tasks.filter((t) => t.status === "pending").length)
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -38,11 +31,6 @@ const form = ref<TaskForm>({
   tags: "",
   list: defaultList,
 })
-
-function handleAddClick() {
-  if (!authStore.accessToken) return navigateTo("/login")
-  openAddDialog()
-}
 
 function openAddDialog() {
   editingId.value = null
@@ -72,64 +60,54 @@ function resetForm() {
   }
 }
 
-function editTask(task: Task) {
+function editTask(task: TaskItem) {
   editingId.value = task.id
   dialogOpen.value = true
   form.value = {
     title: task.title,
     description: task.description,
-    dueDate: task.dueDate,
-    dueTime: task.dueTime,
+    dueDate: task.dueDate ?? "",
+    dueTime: task.dueTime ?? "",
     priority: task.priority,
     tags: tagsToFormInput(task.tags),
-    list: task.list,
+    list: task.list?.name ?? defaultList,
   }
 }
 
-async function saveTask() {
+function saveTask() {
   if (!form.value.title.trim()) return
 
-  if (!authStore.accessToken) {
-    return navigateTo("/login")
+  if (editingId.value) {
+    store.updateTask(editingId.value, {
+      title: form.value.title,
+      description: form.value.description,
+      dueDate: form.value.dueDate || null,
+      dueTime: form.value.dueTime || null,
+      priority: form.value.priority,
+      list: form.value.list ? { id: form.value.list, name: form.value.list } : null,
+    })
+    toast.success("Task updated")
+  } else {
+    store.addTask({
+      title: form.value.title,
+      description: form.value.description,
+      priority: form.value.priority,
+      dueDate: form.value.dueDate,
+      dueTime: form.value.dueTime,
+      list: form.value.list,
+    })
+    toast.success("Task created")
   }
-
-  try {
-    if (editingId.value) {
-      const updated = await updateTask(editingId.value, form.value)
-      const task = tasks.value.find((t) => t.id === editingId.value)
-      if (task) Object.assign(task, updated)
-      toast.success("Task updated")
-    } else {
-      const created = await createTask(form.value)
-      tasks.value.unshift(created)
-      toast.success("Task created")
-    }
-    resetForm()
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to save task."))
-  }
+  resetForm()
 }
 
-async function deleteTask(id: string) {
-  try {
-    await apiDeleteTask(id)
-    tasks.value = tasks.value.filter((t) => t.id !== id)
-    toast.success("Task deleted")
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to delete task."))
-  }
+function deleteTask(id: string) {
+  store.deleteTask(id)
+  toast.success("Task deleted")
 }
 
-async function toggleComplete(id: string) {
-  const task = tasks.value.find((t) => t.id === id)
-  if (!task) return
-
-  try {
-    const updated = await updateTask(id, { ...task, completed: !task.completed })
-    Object.assign(task, updated)
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to update task."))
-  }
+function toggleComplete(id: string) {
+  store.toggleComplete(id)
 }
 </script>
 
@@ -141,11 +119,11 @@ async function toggleComplete(id: string) {
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
       <Button
-  @click="handleAddClick"
-  class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
->
-  + Add Task
-</Button>
+        class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
+        @click="openAddDialog"
+      >
+        + Add Task
+      </Button>
     </div>
 
     <TaskDialog
@@ -158,7 +136,7 @@ async function toggleComplete(id: string) {
     />
 
     <TaskTable
-      :tasks="tasks"
+      :tasks="store.tasks"
       @edit="editTask"
       @delete="deleteTask"
       @toggle="toggleComplete"

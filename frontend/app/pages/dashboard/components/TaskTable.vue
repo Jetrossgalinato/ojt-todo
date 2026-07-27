@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { Star } from 'lucide-vue-next'
-import type { Task } from "~/types/tasks.type"
+import { Star } from "lucide-vue-next"
+import type { TaskItem } from "~/lib/task-filters"
 import { tagsDisplayString } from "~/lib/tags"
 
 defineProps<{
-  tasks: Task[]
+  tasks: TaskItem[]
 }>()
 
 const emit = defineEmits<{
-  edit: [task: Task]
+  edit: [task: TaskItem]
   delete: [id: string]
   toggle: [id: string]
 }>()
@@ -54,7 +54,7 @@ const listStyles: Record<string, string> = {
             <TableCell class="w-10">
               <input
                 type="checkbox"
-                :checked="task.completed"
+                :checked="task.status === 'completed'"
                 class="h-5 w-5 rounded-md border-border accent-teal-600 cursor-pointer"
                 @change="emit('toggle', task.id)"
               >
@@ -65,7 +65,7 @@ const listStyles: Record<string, string> = {
                 <div class="flex flex-col">
                   <p
                     class="text-sm font-medium text-foreground"
-                    :class="task.completed ? 'text-muted-foreground line-through' : ''"
+                    :class="task.status === 'completed' ? 'text-muted-foreground line-through' : ''"
                   >
                     {{ task.title }}
                   </p>
@@ -92,9 +92,9 @@ const listStyles: Record<string, string> = {
             <TableCell>
               <span
                 class="rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="listStyles[task.list] ?? 'bg-muted text-muted-foreground'"
+                :class="listStyles[task.list?.name ?? ''] ?? 'bg-muted text-muted-foreground'"
               >
-                {{ task.list }}
+                {{ task.list?.name ?? "—" }}
               </span>
             </TableCell>
 

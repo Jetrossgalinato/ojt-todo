@@ -253,6 +253,16 @@ export const useTasksStore = defineStore("tasks", {
       }
     },
 
+    updateTask(id: string, data: Partial<TaskItem>) {
+      const task = this.tasks.find((t) => t.id === id)
+      if (!task) return
+      Object.assign(task, data)
+    },
+
+    deleteTask(id: string) {
+      this.tasks = this.tasks.filter((t) => t.id !== id)
+    },
+
     clearCompleted() {
       this.tasks = this.tasks.filter((t) => t.status !== "completed")
     },
