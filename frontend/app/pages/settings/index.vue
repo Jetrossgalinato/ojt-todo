@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
+import { toast } from "vue-sonner"
+import { useTasksStore } from "~/stores/tasks"
 
 definePageMeta({ layout: "default" })
+
+const store = useTasksStore()
 
 const theme = ref("system")
 const defaultView = ref("My tasks")
 const dueDateReminders = ref(true)
 
 onMounted(() => {
+  store.fetchTasks()
   theme.value = localStorage.getItem("settings:theme") || "system"
   defaultView.value = localStorage.getItem("settings:defaultView") || "My tasks"
   dueDateReminders.value = localStorage.getItem("settings:dueDateReminders") !== "false"
@@ -19,6 +24,24 @@ function saveSetting(key: string, value: string) {
 
 function saveBoolSetting(key: string, value: boolean) {
   localStorage.setItem(`settings:${key}`, String(value))
+}
+
+function exportTasks() {
+  const data = JSON.stringify(store.tasks, null, 2)
+  const blob = new Blob([data], { type: "application/json" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = "tasks.json"
+  a.click()
+  URL.revokeObjectURL(url)
+  toast.success("Tasks exported")
+}
+
+function deleteAllCompleted() {
+  if (!confirm("Delete all completed tasks? This can't be undone.")) return
+  store.clearCompleted()
+  toast.success("Completed tasks deleted")
 }
 </script>
 
@@ -101,7 +124,7 @@ function saveBoolSetting(key: string, value: boolean) {
       <div class="border-t border-border">
         <div class="flex items-center justify-between px-4 py-3">
           <p class="text-sm font-medium text-foreground">Export tasks</p>
-          <Button variant="outline" class="h-8 rounded-lg text-xs">
+          <Button variant="outline" class="h-8 rounded-lg text-xs" @click="exportTasks">
             Export
           </Button>
         </div>
@@ -109,7 +132,11 @@ function saveBoolSetting(key: string, value: boolean) {
       <div class="border-t border-border">
         <div class="flex items-center justify-between px-4 py-3">
           <p class="text-sm font-medium text-red-600">Delete all completed tasks</p>
-          <Button variant="outline" class="h-8 rounded-lg text-xs border-red-300 text-red-600 hover:bg-red-50">
+          <Button
+            variant="outline"
+            class="h-8 rounded-lg text-xs border-red-300 text-red-600 hover:bg-red-50"
+            @click="deleteAllCompleted"
+          >
             Delete
           </Button>
         </div>

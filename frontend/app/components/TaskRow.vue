@@ -10,10 +10,11 @@ interface TaskRowItem {
   completedAt?: string | null
 }
 
-defineProps<{
+const props = defineProps<{
   task: TaskRowItem
   showUndo?: boolean
   showDue?: boolean
+  showDateTime?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -35,6 +36,14 @@ function formatCompletedAt(dateStr: string | null): string {
   const hours = d.getHours().toString().padStart(2, "0")
   const mins = d.getMinutes().toString().padStart(2, "0")
   return `${month} ${day}, ${hours}:${mins}`
+}
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return ""
+  const d = new Date(dateStr + "T00:00:00")
+  const month = d.toLocaleString("en-US", { month: "short" }).toLowerCase()
+  const day = d.getDate()
+  return `${month} ${day}`
 }
 </script>
 
@@ -78,15 +87,16 @@ function formatCompletedAt(dateStr: string | null): string {
       {{ task.priority }}
     </span>
 
-    <div class="shrink-0 text-xs text-muted-foreground w-20 text-right">
+    <div class="shrink-0 text-xs text-muted-foreground w-28 text-right">
       <template v-if="showUndo">
         {{ formatCompletedAt(task.completedAt) }}
       </template>
+      <template v-else-if="showDateTime">
+        <span v-if="task.dueDate">{{ formatDate(task.dueDate) }}</span>
+        <span v-if="task.dueTime" class="ml-1">{{ task.dueTime }}</span>
+      </template>
       <template v-else-if="showDue && task.dueTime">
         {{ task.dueTime }}
-      </template>
-      <template v-else-if="showDue && task.dueDate">
-        {{ task.dueDate }}
       </template>
     </div>
 

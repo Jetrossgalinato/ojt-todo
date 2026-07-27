@@ -1,21 +1,57 @@
 <script setup lang="ts">
-import { onMounted } from "vue"
+import { onMounted, ref } from "vue"
 import { useTasksStore } from "~/stores/tasks"
 import TaskRow from "~/components/TaskRow.vue"
 import TaskDialog from "~/pages/dashboard/components/TaskDialog.vue"
+import type { TaskForm } from "~/types/tasks.type"
 
 definePageMeta({ layout: "default" })
 
 const store = useTasksStore()
 
 onMounted(() => {
-  if (!store.tasks.length) store.fetchTasks()
+  store.fetchTasks()
 })
 
 const dialogOpen = ref(false)
+const defaultDueDate = ref("")
+
+const form = ref<TaskForm>({
+  title: "",
+  description: "",
+  dueDate: "",
+  dueTime: "",
+  priority: "medium",
+  tags: "",
+  list: "Personal",
+})
 
 function openAddDialog() {
+  const today = new Date().toISOString().split("T")[0]
+  defaultDueDate.value = today
+  form.value = {
+    title: "",
+    description: "",
+    dueDate: today,
+    dueTime: "",
+    priority: "medium",
+    tags: "",
+    list: "Personal",
+  }
   dialogOpen.value = true
+}
+
+function handleSave() {
+  if (!form.value.title.trim()) return
+  store.addTask({
+    title: form.value.title,
+    description: form.value.description,
+    priority: form.value.priority,
+    dueDate: form.value.dueDate,
+    dueTime: form.value.dueTime,
+    list: form.value.list,
+  })
+  dialogOpen.value = false
 }
 
 function handleToggle(id: string) {
@@ -54,7 +90,7 @@ function handleToggle(id: string) {
           <template v-if="store.getTasksDueToday.length === 0">
             <TableRow>
               <TableCell :colspan="4" class="py-10 text-center text-sm text-muted-foreground">
-                No tasks due today
+                Nothing due today.
               </TableCell>
             </TableRow>
           </template>
@@ -75,9 +111,10 @@ function handleToggle(id: string) {
 
     <TaskDialog
       v-model:open="dialogOpen"
+      v-model:form="form"
       :editing-id="null"
       :lists="['Personal', 'Work', 'Errands']"
-      @save="dialogOpen = false"
+      @save="handleSave"
       @cancel="dialogOpen = false"
     />
   </div>

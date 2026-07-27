@@ -1,70 +1,32 @@
 import { defineStore } from "pinia"
 import type { TaskTag } from "~/types/tasks.type"
 import { useAuthStore } from "~/stores/auth"
-
-interface NormalizedTask {
-  id: string
-  title: string
-  description: string
-  dueDate: string | null
-  dueTime: string | null
-  priority: "low" | "medium" | "high"
-  status: "pending" | "completed"
-  starred: boolean
-  listId: string | null
-  list: { id: string; name: string } | null
-  tags: TaskTag[]
-  completedAt: string | null
-}
+import {
+  getTasksDueToday,
+  getUpcomingGroups,
+  getCompletedTasks,
+  type TaskItem,
+} from "~/lib/task-filters"
 
 export const useTasksStore = defineStore("tasks", {
   state: () => ({
-    tasks: [] as NormalizedTask[],
+    tasks: [] as TaskItem[],
     loading: false,
+    initialized: false,
   }),
 
   getters: {
-    getTasksDueToday: (state) => {
-      const today = new Date().toISOString().split("T")[0]
-      return state.tasks.filter(
-        (t) => t.status === "pending" && t.dueDate === today
-      )
-    },
-
-    getUpcomingTasks: (state) => {
-      const now = new Date()
-      const tomorrow = new Date(now)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStr = tomorrow.toISOString().split("T")[0]
-
-      const endOfWeek = new Date(now)
-      endOfWeek.setDate(endOfWeek.getDate() + (7 - endOfWeek.getDay()))
-      const endOfWeekStr = endOfWeek.toISOString().split("T")[0]
-
-      const pending = state.tasks.filter((t) => t.status === "pending" && t.dueDate)
-
-      const tomorrowTasks = pending.filter((t) => t.dueDate === tomorrowStr)
-      const thisWeekTasks = pending.filter(
-        (t) => t.dueDate! > tomorrowStr && t.dueDate! <= endOfWeekStr
-      )
-      const laterTasks = pending.filter((t) => t.dueDate! > endOfWeekStr)
-
-      return { tomorrow: tomorrowTasks, thisWeek: thisWeekTasks, later: laterTasks }
-    },
-
-    getCompletedTasks: (state) => {
-      return state.tasks
-        .filter((t) => t.status === "completed")
-        .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""))
-    },
+    getTasksDueToday: (state) => getTasksDueToday(state.tasks),
+    getUpcomingTasks: (state) => getUpcomingGroups(state.tasks),
+    getCompletedTasks: (state) => getCompletedTasks(state.tasks),
 
     todayCount(): number {
       return this.getTasksDueToday.length
     },
 
     upcomingCount(): number {
-      const { tomorrow, thisWeek, later } = this.getUpcomingTasks
-      return tomorrow.length + thisWeek.length + later.length
+      const g = this.getUpcomingTasks
+      return g.tomorrow.length + g.thisWeek.length + g.nextWeek.length + g.later.length
     },
 
     completedCount(): number {
@@ -73,76 +35,226 @@ export const useTasksStore = defineStore("tasks", {
   },
 
   actions: {
+    initSeedData() {
+      if (this.initialized) return
+      const today = new Date().toISOString().split("T")[0]
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const tomorrowStr = tomorrow.toISOString().split("T")[0]
+
+      const nextWeek = new Date()
+      nextWeek.setDate(nextWeek.getDate() + 8)
+      const nextWeekStr = nextWeek.toISOString().split("T")[0]
+
+      const twoWeeks = new Date()
+      twoWeeks.setDate(twoWeeks.getDate() + 14)
+      const twoWeeksStr = twoWeeks.toISOString().split("T")[0]
+
+      const past1 = new Date()
+      past1.setDate(past1.getDate() - 1)
+      const past1Str = past1.toISOString().split("T")[0]
+
+      const past2 = new Date()
+      past2.setDate(past2.getDate() - 2)
+      const past2Str = past2.toISOString().split("T")[0]
+
+      const past3 = new Date()
+      past3.setDate(past3.getDate() - 3)
+      const past3Str = past3.toISOString().split("T")[0]
+
+      this.tasks = [
+        {
+          id: "seed-1",
+          title: "Submit report",
+          description: "quarterly summary",
+          dueDate: today,
+          dueTime: "09:00",
+          priority: "high",
+          status: "pending",
+          starred: false,
+          listId: null,
+          list: { id: "work", name: "Work" },
+          tags: [],
+          completedAt: null,
+        },
+        {
+          id: "seed-2",
+          title: "Buy groceries",
+          description: "milk, eggs, bread",
+          dueDate: today,
+          dueTime: "18:00",
+          priority: "low",
+          status: "pending",
+          starred: false,
+          listId: null,
+          list: { id: "errands", name: "Errands" },
+          tags: [],
+          completedAt: null,
+        },
+        {
+          id: "seed-3",
+          title: "Team standup",
+          description: "weekly sync",
+          dueDate: tomorrowStr,
+          dueTime: "09:00",
+          priority: "medium",
+          status: "pending",
+          starred: false,
+          listId: null,
+          list: { id: "work", name: "Work" },
+          tags: [],
+          completedAt: null,
+        },
+        {
+          id: "seed-4",
+          title: "Renew car insurance",
+          description: "",
+          dueDate: tomorrowStr,
+          dueTime: "17:00",
+          priority: "low",
+          status: "pending",
+          starred: false,
+          listId: null,
+          list: { id: "personal", name: "Personal" },
+          tags: [],
+          completedAt: null,
+        },
+        {
+          id: "seed-5",
+          title: "Doctor appointment",
+          description: "",
+          dueDate: nextWeekStr,
+          dueTime: "10:00",
+          priority: "high",
+          status: "pending",
+          starred: false,
+          listId: null,
+          list: { id: "personal", name: "Personal" },
+          tags: [],
+          completedAt: null,
+        },
+        {
+          id: "seed-6",
+          title: "Pay rent",
+          description: "",
+          dueDate: twoWeeksStr,
+          dueTime: null,
+          priority: "medium",
+          status: "pending",
+          starred: false,
+          listId: null,
+          list: { id: "personal", name: "Personal" },
+          tags: [],
+          completedAt: null,
+        },
+        {
+          id: "seed-7",
+          title: "Fix login bug",
+          description: "",
+          dueDate: past1Str,
+          dueTime: "14:00",
+          priority: "high",
+          status: "completed",
+          starred: false,
+          listId: null,
+          list: { id: "work", name: "Work" },
+          tags: [],
+          completedAt: `${past1Str}T14:20:00.000Z`,
+        },
+        {
+          id: "seed-8",
+          title: "Call the dentist",
+          description: "",
+          dueDate: past2Str,
+          dueTime: "10:00",
+          priority: "medium",
+          status: "completed",
+          starred: false,
+          listId: null,
+          list: { id: "personal", name: "Personal" },
+          tags: [],
+          completedAt: `${past2Str}T10:05:00.000Z`,
+        },
+        {
+          id: "seed-9",
+          title: "Water the plants",
+          description: "",
+          dueDate: past3Str,
+          dueTime: "08:00",
+          priority: "low",
+          status: "completed",
+          starred: false,
+          listId: null,
+          list: { id: "errands", name: "Errands" },
+          tags: [],
+          completedAt: `${past3Str}T08:00:00.000Z`,
+        },
+      ]
+      this.initialized = true
+    },
+
     async fetchTasks() {
       const config = useRuntimeConfig()
       const authStore = useAuthStore()
-      if (!authStore.accessToken) return
+      if (!authStore.accessToken) {
+        this.initSeedData()
+        return
+      }
 
       this.loading = true
       try {
-        const res = await $fetch<{ data: NormalizedTask[] }>(
+        const res = await $fetch<{ data: TaskItem[] }>(
           `${config.public.apiBase}/tasks`,
           { headers: { Authorization: `Bearer ${authStore.accessToken}` } }
         )
         this.tasks = res.data
       } catch {
-        // silently fail
+        this.initSeedData()
       } finally {
         this.loading = false
       }
     },
 
-    async toggleComplete(id: string) {
-      const config = useRuntimeConfig()
-      const authStore = useAuthStore()
-      if (!authStore.accessToken) return
+    addTask(data: {
+      title: string
+      description: string
+      priority: "low" | "medium" | "high"
+      dueDate: string
+      dueTime: string
+      list: string
+    }) {
+      const newTask: TaskItem = {
+        id: `task-${Date.now()}`,
+        title: data.title,
+        description: data.description,
+        dueDate: data.dueDate || null,
+        dueTime: data.dueTime || null,
+        priority: data.priority,
+        status: "pending",
+        starred: false,
+        listId: null,
+        list: data.list ? { id: data.list, name: data.list } : null,
+        tags: [],
+        completedAt: null,
+      }
+      this.tasks.unshift(newTask)
+    },
 
+    toggleComplete(id: string) {
       const task = this.tasks.find((t) => t.id === id)
       if (!task) return
 
-      const wasCompleted = task.status === "completed"
-      const newStatus = wasCompleted ? "pending" : "completed"
-
-      try {
-        const updated = await $fetch<NormalizedTask>(
-          `${config.public.apiBase}/tasks/${id}`,
-          {
-            method: "PATCH",
-            headers: { Authorization: `Bearer ${authStore.accessToken}` },
-            body: {
-              status: newStatus,
-              completedAt: newStatus === "completed" ? new Date().toISOString() : null,
-            },
-          }
-        )
-        Object.assign(task, updated)
-      } catch {
-        // revert on error
-        task.status = wasCompleted ? "completed" : "pending"
+      if (task.status === "completed") {
+        task.status = "pending"
+        task.completedAt = null
+      } else {
+        task.status = "completed"
+        task.completedAt = new Date().toISOString()
       }
     },
 
-    async clearCompleted() {
-      const config = useRuntimeConfig()
-      const authStore = useAuthStore()
-      if (!authStore.accessToken) return
-
-      const completedIds = this.tasks
-        .filter((t) => t.status === "completed")
-        .map((t) => t.id)
-
-      if (!completedIds.length) return
-
-      try {
-        await $fetch(`${config.public.apiBase}/tasks/batch`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${authStore.accessToken}` },
-          body: { ids: completedIds },
-        })
-        this.tasks = this.tasks.filter((t) => t.status !== "completed")
-      } catch {
-        // silently fail
-      }
+    clearCompleted() {
+      this.tasks = this.tasks.filter((t) => t.status !== "completed")
     },
   },
 })

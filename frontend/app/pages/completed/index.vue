@@ -9,7 +9,7 @@ definePageMeta({ layout: "default" })
 const store = useTasksStore()
 
 onMounted(() => {
-  if (!store.tasks.length) store.fetchTasks()
+  store.fetchTasks()
 })
 
 function handleUndo(id: string) {
@@ -18,7 +18,7 @@ function handleUndo(id: string) {
 }
 
 function handleClearAll() {
-  if (!confirm("Are you sure you want to clear all completed tasks?")) return
+  if (!confirm("Delete all completed tasks? This can't be undone.")) return
   store.clearCompleted()
   toast.success("Completed tasks cleared")
 }
@@ -30,7 +30,7 @@ function handleClearAll() {
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Completed</h1>
         <p class="text-sm text-muted-foreground mt-1">
-          {{ store.completedCount }} {{ store.completedCount === 1 ? "task" : "tasks" }} completed
+          {{ store.completedCount }} {{ store.completedCount === 1 ? "task" : "tasks" }} completed this week
         </p>
       </div>
       <Button
@@ -57,7 +57,7 @@ function handleClearAll() {
           <template v-if="store.getCompletedTasks.length === 0">
             <TableRow>
               <TableCell :colspan="4" class="py-10 text-center text-sm text-muted-foreground">
-                No completed tasks
+                No completed tasks yet.
               </TableCell>
             </TableRow>
           </template>
