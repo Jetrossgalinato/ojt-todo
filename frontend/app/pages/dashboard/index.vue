@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue"
 import { toast } from "vue-sonner"
 import { useTasks } from "~/composables/useTasks"
 import { getApiErrorMessage } from "~/lib/get-api-error"
+import { tagsToFormInput } from "~/lib/tags"
 import type { Task, TaskForm } from "~/types/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
@@ -80,7 +81,7 @@ function editTask(task: Task) {
     dueDate: task.dueDate,
     dueTime: task.dueTime,
     priority: task.priority,
-    tags: task.tags,
+    tags: tagsToFormInput(task.tags),
     list: task.list,
   }
 }

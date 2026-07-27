@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Star } from 'lucide-vue-next'
 import type { Task } from "~/types/tasks.type"
+import { tagsDisplayString } from "~/lib/tags"
 
 defineProps<{
   tasks: Task[]
@@ -101,7 +102,7 @@ const listStyles: Record<string, string> = {
               <div class="whitespace-nowrap">{{ task.dueDate }} {{ task.dueTime }}</div>
             </TableCell>
 
-            <TableCell class="text-sm text-muted-foreground">{{ task.tags }}</TableCell>
+            <TableCell class="text-sm text-muted-foreground">{{ tagsDisplayString(task.tags) }}</TableCell>
 
             <TableCell class="text-right">
               <div class="flex items-center justify-end gap-1">

@@ -1,5 +1,6 @@
 import type { Task, TaskForm } from "~/types/tasks.type"
 import { useAuthStore } from "~/stores/auth"
+import { tagsToApiPayload } from "~/lib/tags"
 
 export function useTasks() {
   const config = useRuntimeConfig()
@@ -14,12 +15,17 @@ export function useTasks() {
   const apiBase = config.public.apiBase
 
   async function fetchTasks(): Promise<Task[]> {
-    return await $fetch<Task[]>(`${apiBase}/todos`, { headers: authHeaders() })
+    const res = await $fetch<{ data: Task[] }>(`${apiBase}/tasks`, { headers: authHeaders() })
+    return res.data
   }
 
   async function createTask(form: TaskForm): Promise<Task> {
-    const payload = { ...form, listName: form.list }
-    return await $fetch<Task>(`${apiBase}/todos`, {
+    const payload = {
+      ...form,
+      tags: tagsToApiPayload(form.tags),
+      listName: form.list,
+    }
+    return await $fetch<Task>(`${apiBase}/tasks`, {
       method: "POST",
       headers: authHeaders(),
       body: payload,
@@ -28,15 +34,15 @@ export function useTasks() {
 
   async function updateTask(id: string, data: Partial<Task>): Promise<Task> {
     const payload = { ...data, listName: data.list }
-    return await $fetch<Task>(`${apiBase}/todos/${id}`, {
-      method: "PUT",
+    return await $fetch<Task>(`${apiBase}/tasks/${id}`, {
+      method: "PATCH",
       headers: authHeaders(),
       body: payload,
     })
   }
 
   async function deleteTask(id: string): Promise<void> {
-    await $fetch(`${apiBase}/todos/${id}`, {
+    await $fetch(`${apiBase}/tasks/${id}`, {
       method: "DELETE",
       headers: authHeaders(),
     })

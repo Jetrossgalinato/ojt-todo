@@ -19,11 +19,14 @@ const form = defineModel<TaskForm>("form", { required: true })
   <Dialog v-model:open="open">
     <DialogPortal>
       <DialogOverlay />
-      <DialogContent class="rounded-xl sm:max-w-md">
+      <DialogContent class="rounded-xl sm:max-w-md" aria-describedby="task-dialog-desc">
         <DialogHeader>
           <DialogTitle class="text-xl font-bold text-foreground">
             {{ editingId ? "Edit task" : "Add task" }}
           </DialogTitle>
+          <p id="task-dialog-desc" class="sr-only">
+            {{ editingId ? "Edit the details of your task" : "Fill in the details to create a new task" }}
+          </p>
         </DialogHeader>
 
         <div class="flex flex-col gap-4">

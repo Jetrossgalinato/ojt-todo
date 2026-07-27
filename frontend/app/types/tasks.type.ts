@@ -1,3 +1,8 @@
+export interface TaskTag {
+  id: string
+  name: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -5,9 +10,17 @@ export interface Task {
   dueDate: string
   dueTime: string
   priority: "low" | "medium" | "high"
-  tags: string
+  tags: TaskTag[]
   list: string
   completed: boolean
 }
 
-export type TaskForm = Omit<Task, "id" | "completed">
+export interface TaskForm {
+  title: string
+  description: string
+  dueDate: string
+  dueTime: string
+  priority: "low" | "medium" | "high"
+  tags: string
+  list: string
+}
