@@ -74,7 +74,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "work", name: "Work" },
-          tags: [],
+          tags: [{ id: "seed-tag-work", name: "work" }],
           completedAt: null,
         },
         {
@@ -88,7 +88,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "errands", name: "Errands" },
-          tags: [],
+          tags: [{ id: "seed-tag-home", name: "home" }],
           completedAt: null,
         },
         {
@@ -102,7 +102,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "work", name: "Work" },
-          tags: [],
+          tags: [{ id: "seed-tag-work2", name: "work" }],
           completedAt: null,
         },
         {
@@ -116,7 +116,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "personal", name: "Personal" },
-          tags: [],
+          tags: [{ id: "seed-tag-finance", name: "finance" }],
           completedAt: null,
         },
         {
@@ -130,7 +130,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "personal", name: "Personal" },
-          tags: [],
+          tags: [{ id: "seed-tag-health", name: "health" }],
           completedAt: null,
         },
         {
@@ -144,7 +144,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "personal", name: "Personal" },
-          tags: [],
+          tags: [{ id: "seed-tag-finance2", name: "finance" }],
           completedAt: null,
         },
         {
@@ -158,7 +158,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "work", name: "Work" },
-          tags: [],
+          tags: [{ id: "seed-tag-work3", name: "work" }],
           completedAt: `${past1Str}T14:20:00.000Z`,
         },
         {
@@ -172,7 +172,7 @@ export const useTasksStore = defineStore("tasks", {
           starred: false,
           listId: null,
           list: { id: "personal", name: "Personal" },
-          tags: [],
+          tags: [{ id: "seed-tag-health2", name: "health" }],
           completedAt: `${past2Str}T10:05:00.000Z`,
         },
         {
@@ -194,6 +194,8 @@ export const useTasksStore = defineStore("tasks", {
     },
 
     async fetchTasks() {
+      if (this.initialized) return
+
       const config = useRuntimeConfig()
       const authStore = useAuthStore()
       if (!authStore.accessToken) {
@@ -204,10 +206,11 @@ export const useTasksStore = defineStore("tasks", {
       this.loading = true
       try {
         const res = await $fetch<{ data: TaskItem[] }>(
-          `${config.public.apiBase}/tasks`,
+          `${config.public.apiBase}/tasks?limit=100`,
           { headers: { Authorization: `Bearer ${authStore.accessToken}` } }
         )
         this.tasks = res.data
+        this.initialized = true
       } catch {
         this.initSeedData()
       } finally {
@@ -215,14 +218,43 @@ export const useTasksStore = defineStore("tasks", {
       }
     },
 
-    addTask(data: {
+    async addTask(data: {
       title: string
       description: string
       priority: "low" | "medium" | "high"
       dueDate: string
       dueTime: string
       list: string
+      tags?: string[]
     }) {
+      const config = useRuntimeConfig()
+      const authStore = useAuthStore()
+
+      if (authStore.accessToken) {
+        try {
+          const created = await $fetch<TaskItem>(
+            `${config.public.apiBase}/tasks`,
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${authStore.accessToken}` },
+              body: {
+                title: data.title,
+                description: data.description || undefined,
+                priority: data.priority,
+                dueDate: data.dueDate || undefined,
+                dueTime: data.dueTime || undefined,
+                listId: data.list || undefined,
+                tags: data.tags ?? [],
+              },
+            }
+          )
+          this.tasks.unshift(created)
+          return
+        } catch {
+          // fall through to local-only add
+        }
+      }
+
       const newTask: TaskItem = {
         id: `task-${Date.now()}`,
         title: data.title,
@@ -234,13 +266,33 @@ export const useTasksStore = defineStore("tasks", {
         starred: false,
         listId: null,
         list: data.list ? { id: data.list, name: data.list } : null,
-        tags: [],
+        tags: (data.tags ?? []).map((name, i) => ({ id: `tag-${Date.now()}-${i}`, name })),
         completedAt: null,
       }
       this.tasks.unshift(newTask)
     },
 
-    toggleComplete(id: string) {
+    async toggleComplete(id: string) {
+      const config = useRuntimeConfig()
+      const authStore = useAuthStore()
+
+      if (authStore.accessToken) {
+        try {
+          const updated = await $fetch<TaskItem>(
+            `${config.public.apiBase}/tasks/${id}/complete`,
+            {
+              method: "PATCH",
+              headers: { Authorization: `Bearer ${authStore.accessToken}` },
+            }
+          )
+          const idx = this.tasks.findIndex((t) => t.id === id)
+          if (idx !== -1) this.tasks[idx] = updated
+          return
+        } catch {
+          // fall through to local-only toggle
+        }
+      }
+
       const task = this.tasks.find((t) => t.id === id)
       if (!task) return
 
@@ -253,17 +305,89 @@ export const useTasksStore = defineStore("tasks", {
       }
     },
 
-    updateTask(id: string, data: Partial<TaskItem>) {
+    async updateTask(id: string, data: Partial<TaskItem> & { tags?: string[] }) {
+      const config = useRuntimeConfig()
+      const authStore = useAuthStore()
+
+      if (authStore.accessToken) {
+        try {
+          const updated = await $fetch<TaskItem>(
+            `${config.public.apiBase}/tasks/${id}`,
+            {
+              method: "PATCH",
+              headers: { Authorization: `Bearer ${authStore.accessToken}` },
+              body: {
+                ...(data.title !== undefined && { title: data.title }),
+                ...(data.description !== undefined && { description: data.description }),
+                ...(data.priority !== undefined && { priority: data.priority }),
+                ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
+                ...(data.dueTime !== undefined && { dueTime: data.dueTime }),
+                ...(data.list !== undefined && { listId: (data.list as any)?.id ?? null }),
+                ...(data.tags !== undefined && { tags: data.tags }),
+              },
+            }
+          )
+          const idx = this.tasks.findIndex((t) => t.id === id)
+          if (idx !== -1) this.tasks[idx] = updated
+          return
+        } catch {
+          // fall through to local-only update
+        }
+      }
+
       const task = this.tasks.find((t) => t.id === id)
       if (!task) return
-      Object.assign(task, data)
+
+      if (data.tags !== undefined) {
+        const { tags, ...rest } = data
+        task.tags = tags.map((name, i) => ({ id: `tag-${Date.now()}-${i}`, name }))
+        Object.assign(task, rest)
+      } else {
+        Object.assign(task, data)
+      }
     },
 
-    deleteTask(id: string) {
+    async deleteTask(id: string) {
+      const config = useRuntimeConfig()
+      const authStore = useAuthStore()
+
+      if (authStore.accessToken) {
+        try {
+          await $fetch(`${config.public.apiBase}/tasks/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${authStore.accessToken}` },
+          })
+          this.tasks = this.tasks.filter((t) => t.id !== id)
+          return
+        } catch {
+          // fall through to local-only delete
+        }
+      }
+
       this.tasks = this.tasks.filter((t) => t.id !== id)
     },
 
-    clearCompleted() {
+    async clearCompleted() {
+      const config = useRuntimeConfig()
+      const authStore = useAuthStore()
+      const completedIds = this.tasks
+        .filter((t) => t.status === "completed")
+        .map((t) => t.id)
+
+      if (authStore.accessToken && completedIds.length > 0) {
+        try {
+          await $fetch(`${config.public.apiBase}/tasks/batch`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${authStore.accessToken}` },
+            body: { ids: completedIds },
+          })
+          this.tasks = this.tasks.filter((t) => t.status !== "completed")
+          return
+        } catch {
+          // fall through to local-only clear
+        }
+      }
+
       this.tasks = this.tasks.filter((t) => t.status !== "completed")
     },
   },

@@ -1,12 +1,15 @@
 ﻿<script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { toast } from "vue-sonner"
 import { useTasksStore } from "~/stores/tasks"
 import { tagsToFormInput } from "~/lib/tags"
+import { parseTags } from "~/lib/tags"
 import type { TaskForm } from "~/types/tasks.type"
 import type { TaskItem } from "~/lib/task-filters"
+import { getUniqueTags, filterByTag } from "~/lib/task-filters"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
+import TagFilter from "~/components/TagFilter.vue"
 
 const store = useTasksStore()
 
@@ -17,7 +20,22 @@ onMounted(() => {
   store.fetchTasks()
 })
 
-const pendingCount = computed(() => store.tasks.filter((t) => t.status === "pending").length)
+const allPending = computed(() => store.tasks.filter((t) => t.status === "pending"))
+const selectedTag = ref<string | null>(null)
+
+const uniqueTags = computed(() => getUniqueTags(allPending.value))
+
+// auto-clear the filter if the currently selected tag no longer exists
+// (e.g. the last task with that tag was deleted)
+watch(uniqueTags, (tags) => {
+  if (selectedTag.value && !tags.includes(selectedTag.value)) {
+    selectedTag.value = null
+  }
+})
+
+const filteredPending = computed(() => filterByTag(allPending.value, selectedTag.value))
+const pendingCount = computed(() => filteredPending.value.length)
+const filteredTasks = computed(() => filterByTag(store.tasks, selectedTag.value))
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -77,6 +95,8 @@ function editTask(task: TaskItem) {
 function saveTask() {
   if (!form.value.title.trim()) return
 
+  const parsedTags = parseTags(form.value.tags)
+
   if (editingId.value) {
     store.updateTask(editingId.value, {
       title: form.value.title,
@@ -85,6 +105,7 @@ function saveTask() {
       dueTime: form.value.dueTime || null,
       priority: form.value.priority,
       list: form.value.list ? { id: form.value.list, name: form.value.list } : null,
+      tags: parsedTags,
     })
     toast.success("Task updated")
   } else {
@@ -95,6 +116,7 @@ function saveTask() {
       dueDate: form.value.dueDate,
       dueTime: form.value.dueTime,
       list: form.value.list,
+      tags: parsedTags,
     })
     toast.success("Task created")
   }
@@ -135,8 +157,14 @@ function toggleComplete(id: string) {
       @cancel="resetForm"
     />
 
+    <TagFilter
+      :tags="uniqueTags"
+      :selected="selectedTag"
+      @select="selectedTag = $event"
+    />
+
     <TaskTable
-      :tasks="store.tasks"
+      :tasks="filteredTasks"
       @edit="editTask"
       @delete="deleteTask"
       @toggle="toggleComplete"

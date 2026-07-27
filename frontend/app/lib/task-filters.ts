@@ -64,3 +64,22 @@ export function getCompletedTasks(tasks: TaskItem[]): TaskItem[] {
     .filter((t) => t.status === "completed")
     .sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""))
 }
+
+export function getUniqueTags(tasks: TaskItem[]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const task of tasks) {
+    for (const tag of task.tags) {
+      if (tag.name && !seen.has(tag.name)) {
+        seen.add(tag.name)
+        result.push(tag.name)
+      }
+    }
+  }
+  return result
+}
+
+export function filterByTag(tasks: TaskItem[], selectedTag: string | null): TaskItem[] {
+  if (!selectedTag) return tasks
+  return tasks.filter((t) => t.tags.some((tag) => tag.name === selectedTag))
+}
