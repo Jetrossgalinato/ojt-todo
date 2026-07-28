@@ -35,6 +35,7 @@ const listStyles: Record<string, string> = {
           <TableHead>Task</TableHead>
           <TableHead>Priority</TableHead>
           <TableHead>List</TableHead>
+          <TableHead>Start</TableHead>
           <TableHead>Due</TableHead>
           <TableHead>Tags</TableHead>
           <TableHead class="text-right">Actions</TableHead>
@@ -43,7 +44,7 @@ const listStyles: Record<string, string> = {
       <TableBody>
         <template v-if="tasks.length === 0">
           <TableRow>
-            <TableCell :colspan="7" class="py-10 text-center text-sm text-muted-foreground">
+            <TableCell :colspan="8" class="py-10 text-center text-sm text-muted-foreground">
               No tasks yet
             </TableCell>
           </TableRow>
@@ -96,6 +97,10 @@ const listStyles: Record<string, string> = {
               >
                 {{ task.list }}
               </span>
+            </TableCell>
+
+            <TableCell class="text-sm text-muted-foreground">
+              <div class="whitespace-nowrap">{{ task.startDate }} {{ task.startTime }}</div>
             </TableCell>
 
             <TableCell class="text-sm text-muted-foreground">

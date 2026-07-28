@@ -4,6 +4,8 @@ export interface NormalizedTask {
   description: string | null;
   priority: string;
   status: string;
+  startDate: string;
+  startTime: string;
   dueDate: string | null;
   dueTime: string | null;
   completedAt: string | null;

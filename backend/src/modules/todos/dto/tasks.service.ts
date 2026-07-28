@@ -22,6 +22,8 @@ interface TaskWithRelations {
   description: string | null;
   priority: string;
   status: string;
+  startDate: Date;
+  startTime: string;
   dueDate: Date | null;
   dueTime: string | null;
   completedAt: Date | null;
@@ -41,6 +43,8 @@ function normalizeTask(task: TaskWithRelations): NormalizedTask {
     description: task.description ?? null,
     priority: task.priority,
     status: task.status,
+    startDate: task.startDate.toISOString().split('T')[0],
+    startTime: task.startTime,
     dueDate: task.dueDate ? task.dueDate.toISOString().split('T')[0] : null,
     dueTime: task.dueTime ?? null,
     completedAt: task.completedAt ? task.completedAt.toISOString() : null,
@@ -398,6 +402,8 @@ export class TasksService {
         description: dto.description ?? null,
         priority: dto.priority ?? 'medium',
         status: dto.status ?? 'pending',
+        startDate: new Date(dto.startDate),
+        startTime: dto.startTime,
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         dueTime: dto.dueTime ?? null,
         starred: dto.starred ?? false,
@@ -429,6 +435,10 @@ export class TasksService {
       ...(rest.status !== undefined ? { status: rest.status } : {}),
       ...(rest.starred !== undefined ? { starred: rest.starred } : {}),
       ...(rest.listId !== undefined ? { listId: rest.listId ?? null } : {}),
+      ...(rest.startDate !== undefined
+        ? { startDate: new Date(rest.startDate) }
+        : {}),
+      ...(rest.startTime !== undefined ? { startTime: rest.startTime } : {}),
       ...(rest.dueDate !== undefined
         ? { dueDate: rest.dueDate ? new Date(rest.dueDate) : null }
         : {}),
