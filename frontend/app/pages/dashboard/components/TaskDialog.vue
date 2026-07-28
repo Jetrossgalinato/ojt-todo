@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { TaskForm } from "~/types/tasks.type"
+import { validateDueDate } from "~/lib/validate-due-date"
 
 defineProps<{
   lists: string[]
@@ -17,17 +18,7 @@ const form = defineModel<TaskForm>("form", { required: true })
 
 const dateError = computed(() => {
   const { startDate, startTime, dueDate, dueTime } = form.value
-  if (!dueDate) return null
-
-  if (dueDate < startDate) {
-    return "Due date can't be before the start date."
-  }
-
-  if (dueDate === startDate && dueTime && startTime && dueTime < startTime) {
-    return "Due time can't be before the start time on the same day."
-  }
-
-  return null
+  return validateDueDate(startDate, startTime, dueDate, dueTime)
 })
 
 const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
