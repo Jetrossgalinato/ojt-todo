@@ -25,6 +25,13 @@ export class CreateTaskDto {
   @IsIn(['pending', 'completed'])
   status?: string;
 
+  @IsDateString()
+  startDate: string;
+
+  @IsString()
+  @MaxLength(8)
+  startTime: string;
+
   @IsOptional()
   @IsDateString()
   dueDate?: string;

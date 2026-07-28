@@ -1,4 +1,10 @@
-import { parseTags, tagsToApiPayload, tagsDisplayString, tagsToFormInput, TaskTag } from './tags';
+import {
+  parseTags,
+  tagsToApiPayload,
+  tagsDisplayString,
+  tagsToFormInput,
+  TaskTag,
+} from './tags';
 
 describe('parseTags', () => {
   it('converts comma-separated string into a clean array', () => {
@@ -10,7 +16,11 @@ describe('parseTags', () => {
   });
 
   it('lowercases all tags', () => {
-    expect(parseTags('Urgent, HOME, School')).toEqual(['urgent', 'home', 'school']);
+    expect(parseTags('Urgent, HOME, School')).toEqual([
+      'urgent',
+      'home',
+      'school',
+    ]);
   });
 
   it('removes duplicate tags (case-insensitive)', () => {

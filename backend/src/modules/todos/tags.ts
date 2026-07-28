@@ -24,7 +24,9 @@ export interface TaskTag {
   name: string;
 }
 
-export function tagsDisplayString(tags: TaskTag[] | string | null | undefined): string {
+export function tagsDisplayString(
+  tags: TaskTag[] | string | null | undefined,
+): string {
   if (!tags) return '';
   if (typeof tags === 'string') return tags;
   return tags.map((t) => t.name).join(', ');
