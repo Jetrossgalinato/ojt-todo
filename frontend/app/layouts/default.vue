@@ -45,7 +45,9 @@ function handleLogout() {
       </nav>
 
       <div class="mt-auto flex flex-col gap-1">
-        <ThemeSwitcher />
+        <ClientOnly>
+          <ThemeSwitcher />
+        </ClientOnly>
 
         <button
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-teal-100 hover:bg-teal-700 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
