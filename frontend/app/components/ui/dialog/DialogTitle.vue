@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { DialogTitle } from "reka-ui"
 </script>
 
 <template>
-  <h2 class="text-lg font-semibold text-foreground">
+  <DialogTitle class="text-lg font-semibold text-foreground">
     <slot />
-  </h2>
+  </DialogTitle>
 </template>

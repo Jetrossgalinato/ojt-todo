@@ -22,6 +22,8 @@ export function useTasks() {
   async function createTask(form: TaskForm): Promise<Task> {
     const payload = {
       ...form,
+      dueDate: form.dueDate || undefined,
+      dueTime: form.dueTime || undefined,
       tags: tagsToApiPayload(form.tags),
       listName: form.list,
     }
@@ -33,7 +35,12 @@ export function useTasks() {
   }
 
   async function updateTask(id: string, data: Partial<Task>): Promise<Task> {
-    const payload = { ...data, listName: data.list }
+    const payload = {
+      ...data,
+      dueDate: data.dueDate || undefined,
+      dueTime: data.dueTime || undefined,
+      listName: data.list,
+    }
     return await $fetch<Task>(`${apiBase}/tasks/${id}`, {
       method: "PATCH",
       headers: authHeaders(),
