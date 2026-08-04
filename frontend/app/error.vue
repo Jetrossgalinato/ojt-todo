@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { toast } from 'vue-sonner'
-import { ErrorIcon } from '@/lib/toast-icons'
-
 const props = defineProps<{
   error: {
     statusCode: number
@@ -11,20 +8,6 @@ const props = defineProps<{
 }>()
 
 const isNotFound = props.error.statusCode === 404
-
-onMounted(() => {
-  if (isNotFound) {
-    toast.error('Page not found', {
-      description: `The page ${window.location.pathname} does not exist.`,
-      icon: ErrorIcon,
-    })
-  } else {
-    toast.error('Something went wrong', {
-      description: props.error.statusMessage || 'An unexpected error occurred.',
-      icon: ErrorIcon,
-    })
-  }
-})
 
 function goHome() {
   clearError({ redirect: '/login' })

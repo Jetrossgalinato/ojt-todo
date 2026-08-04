@@ -2,23 +2,40 @@
 import { ref, computed, onMounted } from "vue"
 import { toast } from "vue-sonner"
 import { useTasks } from "~/composables/useTasks"
+import { useTags, type Tag } from "~/composables/useTags"
 import { getApiErrorMessage } from "~/lib/get-api-error"
 import { tagsToFormInput } from "~/lib/tags"
 import type { Task, TaskForm } from "~/types/tasks.type"
+import TagFilter from "~/components/TagFilter.vue"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
 const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
+const { fetchTags } = useTags()
 const authStore = useAuthStore()
 
 const lists = ["Personal", "Work", "Errands"]
 const defaultList = lists[0] ?? "Personal"
 
 const tasks = ref<Task[]>([])
+const tags = ref<Tag[]>([])
+const selectedTag = ref<string | null>(null)
+
+const filteredTasks = computed(() => {
+  if (!selectedTag.value) return tasks.value
+  return tasks.value.filter((t) =>
+    t.tags.some((tag) => tag.name === selectedTag.value),
+  )
+})
 
 onMounted(async () => {
   try {
-    tasks.value = await fetchTasks()
+    const [fetchedTasks, fetchedTags] = await Promise.all([
+      fetchTasks(),
+      fetchTags().catch(() => []),
+    ])
+    tasks.value = fetchedTasks
+    tags.value = fetchedTags
   } catch (error: unknown) {
     toast.error(getApiErrorMessage(error, "Failed to load tasks."))
   }
@@ -148,6 +165,8 @@ async function toggleComplete(id: string) {
 </Button>
     </div>
 
+    <TagFilter v-if="tags.length > 0" v-model:selected-tag="selectedTag" :tags="tags" />
+
     <TaskDialog
       v-model:open="dialogOpen"
       v-model:form="form"
@@ -158,7 +177,7 @@ async function toggleComplete(id: string) {
     />
 
     <TaskTable
-      :tasks="tasks"
+      :tasks="filteredTasks"
       @edit="editTask"
       @delete="deleteTask"
       @toggle="toggleComplete"
