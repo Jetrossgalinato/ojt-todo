@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ClipboardList, CheckSquare, Settings, LogOut } from 'lucide-vue-next'
+import { toast } from 'vue-sonner'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
 
@@ -17,6 +18,7 @@ function isActive(path: string) {
 
 function handleLogout() {
   authStore.logout?.()
+  toast.success('Signed out successfully')
   navigateTo('/login')
 }
 </script>
