@@ -11,7 +11,7 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   if (!isAuthenticated && !isPublicPage) {
-    return showError(
+     return showError(
       createError({
         statusCode: 404,
         statusMessage: 'Page Not Found',
