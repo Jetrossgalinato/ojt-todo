@@ -10,7 +10,7 @@ import TagFilter from "~/components/TagFilter.vue"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
-const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
+const { fetchTasks, createTask, updateTask, toggleComplete: apiToggleComplete, deleteTask: apiDeleteTask } = useTasks()
 const { fetchTags } = useTags()
 const authStore = useAuthStore()
 
@@ -49,6 +49,8 @@ const editingId = ref<string | null>(null)
 const form = ref<TaskForm>({
   title: "",
   description: "",
+  startDate: "",
+  startTime: "",
   dueDate: "",
   dueTime: "",
   priority: "medium",
@@ -63,9 +65,14 @@ function handleAddClick() {
 
 function openAddDialog() {
   editingId.value = null
+  const now = new Date()
+  const today = now.toISOString().split("T")[0]
+  const currentTime = now.toTimeString().slice(0, 5)
   form.value = {
     title: "",
     description: "",
+    startDate: today,
+    startTime: currentTime,
     dueDate: "",
     dueTime: "",
     priority: "medium",
@@ -81,6 +88,8 @@ function resetForm() {
   form.value = {
     title: "",
     description: "",
+    startDate: "",
+    startTime: "",
     dueDate: "",
     dueTime: "",
     priority: "medium",
@@ -95,6 +104,8 @@ function editTask(task: Task) {
   form.value = {
     title: task.title,
     description: task.description,
+    startDate: task.startDate,
+    startTime: task.startTime,
     dueDate: task.dueDate,
     dueTime: task.dueTime,
     priority: task.priority,
@@ -142,7 +153,7 @@ async function toggleComplete(id: string) {
   if (!task) return
 
   try {
-    const updated = await updateTask(id, { ...task, completed: !task.completed })
+    const updated = await apiToggleComplete(id)
     Object.assign(task, updated)
   } catch (error: unknown) {
     toast.error(getApiErrorMessage(error, "Failed to update task."))
