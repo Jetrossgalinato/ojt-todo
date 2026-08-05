@@ -170,7 +170,7 @@ async function toggleComplete(id: string) {
       </div>
       <Button
   @click="handleAddClick"
-  class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
+  class="rounded-full px-4 py-1.5 text-xs h-auto bg-primary hover:bg-primary/90 text-primary-foreground border-0"
 >
   + Add Task
 </Button>

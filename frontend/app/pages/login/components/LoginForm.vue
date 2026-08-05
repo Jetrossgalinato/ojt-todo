@@ -127,7 +127,7 @@ function loginWithGoogle() {
         </label>
         <NuxtLink
           to="/forgot-password"
-          class="text-sm font-medium text-teal-600 hover:text-teal-500"
+          class="text-sm font-medium text-primary hover:text-primary/80"
         >
           Forgot Your Password?
         </NuxtLink>
@@ -171,7 +171,7 @@ function loginWithGoogle() {
 
       <p class="text-center text-sm text-muted-foreground">
         Don't Have An Account?
-        <NuxtLink to="/register" class="font-medium text-teal-600 hover:text-teal-500">
+        <NuxtLink to="/register" class="font-medium text-primary hover:text-primary/80">
           Register Now.
         </NuxtLink>
       </p>

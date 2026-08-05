@@ -134,7 +134,7 @@ async function save() {
             <select
               id="accent-color"
               v-model="form.accentColor"
-              class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
+              class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
             >
               <option v-for="color in accentColors" :key="color" :value="color">
                 {{ color }}
@@ -160,7 +160,7 @@ async function save() {
             <div class="flex items-center gap-3">
               <select
                 v-model="form.reminderTime"
-                class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
+                class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
                 :disabled="!form.dueReminders"
               >
                 <option v-for="time in reminderTimes" :key="time" :value="time">
@@ -191,7 +191,7 @@ async function save() {
             <div class="flex items-center gap-3">
               <select
                 v-model="form.digestTime"
-                class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
+                class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
                 :disabled="!form.dailyDigest"
               >
                 <option v-for="time in digestTimes" :key="time" :value="time">

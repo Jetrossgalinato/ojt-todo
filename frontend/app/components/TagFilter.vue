@@ -20,7 +20,7 @@ function clear() {
     <select
       id="tag-filter"
       v-model="selectedTag"
-      class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
+      class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
     >
       <option :value="null">All tags</option>
       <option v-for="tag in props.tags" :key="tag.id" :value="tag.name">
