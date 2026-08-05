@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Star } from 'lucide-vue-next'
 import type { Task } from "~/types/tasks.type"
-import { tagsDisplayString } from "~/lib/tags"
 
 defineProps<{
   tasks: Task[]
@@ -107,7 +106,18 @@ const listStyles: Record<string, string> = {
               <div class="whitespace-nowrap">{{ task.dueDate }} {{ task.dueTime }}</div>
             </TableCell>
 
-            <TableCell class="text-sm text-muted-foreground">{{ tagsDisplayString(task.tags) }}</TableCell>
+            <TableCell class="text-sm text-muted-foreground">
+              <div v-if="task.tags.length" class="flex flex-wrap gap-1">
+                <span
+                  v-for="tag in task.tags"
+                  :key="tag.id"
+                  class="inline-block rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700"
+                >
+                  {{ tag.name }}
+                </span>
+              </div>
+              <span v-else>—</span>
+            </TableCell>
 
             <TableCell class="text-right">
               <div class="flex items-center justify-end gap-1">
