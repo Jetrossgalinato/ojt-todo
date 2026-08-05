@@ -16,55 +16,59 @@ import { Label } from "@/components/ui/label"
 
 definePageMeta({ layout: "default" })
 
-const { fetchSettings, updateSettings } = useSettings()
+const { updateSettings } = useSettings()
 
 const accentColors = ["Teal", "Blue", "Green", "Purple", "Pink", "Orange", "Slate"]
 const reminderTimes = ["1 hour before", "30 minutes before", "2 hours before", "1 day before"]
 const digestTimes = ["8:00 AM", "9:00 AM", "12:00 PM", "5:00 PM", "6:00 PM", "7:00 PM"]
 
-const loading = ref(true)
-const autoSaving = ref(false)
 const saved = ref(false)
 
 let hydrated = false
-let applyingServer = false
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-const form = reactive<UserSettings>({
-  userId: "",
-  accentColor: "Teal",
-  dueReminders: true,
-  reminderTime: "1 hour before",
-  overdueAlerts: true,
-  dailyDigest: false,
-  digestTime: "8:00 AM",
-  emailNotifications: false,
-  notificationSound: true,
-  highPriorityOnly: false,
-  lastDigestSentDate: null,
-  updatedAt: "",
-})
+const SETTINGS_STORAGE_KEY = "user-settings"
 
-onMounted(async () => {
-  try {
-    const settings = await fetchSettings()
-    applyingServer = true
-    Object.assign(form, settings)
-    applyingServer = false
-    applyAccent(form.accentColor)
-    saveAccentLocally(form.accentColor)
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to load settings."))
-  } finally {
-    hydrated = true
-    loading.value = false
+function defaultSettings(): UserSettings {
+  return {
+    userId: "",
+    accentColor: "Teal",
+    dueReminders: true,
+    reminderTime: "1 hour before",
+    overdueAlerts: true,
+    dailyDigest: false,
+    digestTime: "8:00 AM",
+    emailNotifications: false,
+    notificationSound: true,
+    highPriorityOnly: false,
+    lastDigestSentDate: null,
+    updatedAt: "",
   }
+}
+
+function loadLocalSettings(): UserSettings {
+  if (typeof window === "undefined") return defaultSettings()
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
+    if (!raw) return defaultSettings()
+    return { ...defaultSettings(), ...JSON.parse(raw) }
+  } catch {
+    return defaultSettings()
+  }
+}
+
+const form = reactive<UserSettings>(defaultSettings())
+
+onMounted(() => {
+  Object.assign(form, loadLocalSettings())
+  applyAccent(form.accentColor)
+  hydrated = true
 })
 
 watch(
   () => form.accentColor,
   (color) => {
-    if (!hydrated || applyingServer) return
+    if (!hydrated) return
     applyAccent(color)
     saveAccentLocally(color)
   }
@@ -73,17 +77,25 @@ watch(
 watch(
   form,
   () => {
-    if (!hydrated || applyingServer) return
+    if (!hydrated) return
+    saveLocally()
     if (saveTimer) clearTimeout(saveTimer)
-    autoSaving.value = true
-    saveTimer = setTimeout(save, 600)
+    saveTimer = setTimeout(saveToServer, 600)
   },
   { deep: true }
 )
 
-async function save() {
+function saveLocally() {
   try {
-    const updated = await updateSettings({
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(form))
+  } catch {
+    // ignore quota errors
+  }
+}
+
+async function saveToServer() {
+  try {
+    await updateSettings({
       accentColor: form.accentColor,
       dueReminders: form.dueReminders,
       reminderTime: form.reminderTime,
@@ -94,17 +106,12 @@ async function save() {
       notificationSound: form.notificationSound,
       highPriorityOnly: form.highPriorityOnly,
     })
-    applyingServer = true
-    Object.assign(form, updated)
-    applyingServer = false
-    autoSaving.value = false
     saved.value = true
     setTimeout(() => {
       saved.value = false
     }, 2500)
   } catch (error: unknown) {
-    autoSaving.value = false
-    toast.error(getApiErrorMessage(error, "Failed to save settings."))
+    toast.error(getApiErrorMessage(error, "Failed to sync settings."))
   }
 }
 </script>
@@ -118,12 +125,7 @@ async function save() {
       </p>
     </div>
 
-    <div v-if="loading" class="text-sm text-muted-foreground">
-      Loading settings...
-    </div>
-
-    <template v-else>
-      <Card>
+    <Card>
         <CardHeader>
           <CardTitle>Theme</CardTitle>
           <CardDescription>Choose your accent color.</CardDescription>
@@ -235,13 +237,9 @@ async function save() {
       </Card>
 
       <div class="flex min-h-[36px] items-center justify-end gap-3">
-        <span v-if="autoSaving" class="text-xs text-muted-foreground">
-          Saving…
-        </span>
-        <span v-else-if="saved" class="text-xs text-emerald-600">
+        <span v-if="saved" class="text-xs text-emerald-600">
           All changes saved ✓
         </span>
       </div>
-    </template>
   </div>
 </template>
