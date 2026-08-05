@@ -13,6 +13,19 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        'vue-sonner',
+        'class-variance-authority',
+        'reka-ui',
+        'clsx',
+        'tailwind-merge',
+        'lucide-vue-next',
+        '@vueuse/core',
+      ],
+    },
   },
 
   modules: ["shadcn-nuxt", "@nuxtjs/color-mode", "@pinia/nuxt"],
