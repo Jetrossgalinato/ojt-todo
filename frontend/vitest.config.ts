@@ -1,14 +1,10 @@
 import { defineConfig } from "vitest/config"
-import { resolve } from "path"
+import vue from "@vitejs/plugin-vue"
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "~": resolve(__dirname, "app"),
-      "@": resolve(__dirname, "app"),
-    },
-  },
+  plugins: [vue()],
   test: {
-    include: ["app/**/*.test.ts", "app/**/*.spec.ts"],
+    environment: "happy-dom",
+    include: ["test/**/*.test.ts"],
   },
 })

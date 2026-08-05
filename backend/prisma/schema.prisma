@@ -19,6 +19,7 @@ model User {
   lists                List[]
   tags                 Tag[]
   preferences          UserPreferences?
+  settings             UserSettings?
 }
 
 model UserPreferences {
@@ -30,6 +31,22 @@ model UserPreferences {
   emailNotifications Boolean @default(true)
   pushNotifications  Boolean @default(true)
   User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  userId             String    @id
+  accentColor        String    @default("Teal")
+  dueReminders       Boolean   @default(true)
+  reminderTime       String    @default("1 hour before")
+  overdueAlerts      Boolean   @default(true)
+  dailyDigest        Boolean   @default(false)
+  digestTime         String    @default("8:00 AM")
+  emailNotifications Boolean   @default(false)
+  notificationSound  Boolean   @default(true)
+  highPriorityOnly   Boolean   @default(false)
+  lastDigestSentDate DateTime? @db.Date
+  updatedAt          DateTime  @default(now()) @updatedAt
+  User               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model List {
@@ -69,6 +86,8 @@ model Task {
   dueTime     String?   @db.VarChar(8)
   completedAt DateTime?
   starred     Boolean   @default(false)
+  notifiedDue Boolean   @default(false)
+  notifiedOverdue Boolean @default(false)
   userId      String
   listId      String?
   createdAt   DateTime  @default(now()) @db.Timestamp(6)

@@ -114,6 +114,56 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+html.accent-teal {
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --ring: #0d9488;
+  --sidebar-primary: #0d9488;
+  --sidebar-primary-foreground: #ffffff;
+}
+html.accent-blue {
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --ring: #2563eb;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+}
+html.accent-green {
+  --primary: #16a34a;
+  --primary-foreground: #ffffff;
+  --ring: #16a34a;
+  --sidebar-primary: #16a34a;
+  --sidebar-primary-foreground: #ffffff;
+}
+html.accent-purple {
+  --primary: #9333ea;
+  --primary-foreground: #ffffff;
+  --ring: #9333ea;
+  --sidebar-primary: #9333ea;
+  --sidebar-primary-foreground: #ffffff;
+}
+html.accent-pink {
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --ring: #ec4899;
+  --sidebar-primary: #ec4899;
+  --sidebar-primary-foreground: #ffffff;
+}
+html.accent-orange {
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --ring: #f97316;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #ffffff;
+}
+html.accent-slate {
+  --primary: #475569;
+  --primary-foreground: #ffffff;
+  --ring: #475569;
+  --sidebar-primary: #475569;
+  --sidebar-primary-foreground: #ffffff;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
