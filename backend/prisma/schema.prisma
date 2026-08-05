@@ -63,6 +63,8 @@ model Task {
   description String?
   priority    String    @default("medium")
   status      String    @default("pending")
+  startDate   DateTime
+  startTime   String    @db.VarChar(8)
   dueDate     DateTime?
   dueTime     String?   @db.VarChar(8)
   completedAt DateTime?

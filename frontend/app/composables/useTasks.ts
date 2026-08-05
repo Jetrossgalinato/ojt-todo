@@ -22,6 +22,8 @@ export function useTasks() {
   async function createTask(form: TaskForm): Promise<Task> {
     const payload = {
       ...form,
+      startDate: form.startDate,
+      startTime: form.startTime,
       dueDate: form.dueDate || undefined,
       dueTime: form.dueTime || undefined,
       tags: tagsToApiPayload(form.tags),
@@ -35,16 +37,25 @@ export function useTasks() {
   }
 
   async function updateTask(id: string, data: Partial<Task>): Promise<Task> {
+    const { tags, ...rest } = data
     const payload = {
-      ...data,
+      ...rest,
       dueDate: data.dueDate || undefined,
       dueTime: data.dueTime || undefined,
       listName: data.list,
+      tags: tags !== undefined ? tagsToApiPayload(typeof tags === "string" ? tags : tags.map((t) => t.name).join(", ")) : undefined,
     }
     return await $fetch<Task>(`${apiBase}/tasks/${id}`, {
       method: "PATCH",
       headers: authHeaders(),
       body: payload,
+    })
+  }
+
+  async function toggleComplete(id: string): Promise<Task> {
+    return await $fetch<Task>(`${apiBase}/tasks/${id}/complete`, {
+      method: "PATCH",
+      headers: authHeaders(),
     })
   }
 
@@ -55,5 +66,5 @@ export function useTasks() {
     })
   }
 
-  return { fetchTasks, createTask, updateTask, deleteTask }
+  return { fetchTasks, createTask, updateTask, toggleComplete, deleteTask }
 }

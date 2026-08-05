@@ -7,6 +7,8 @@ export interface Task {
   id: string
   title: string
   description: string
+  startDate: string
+  startTime: string
   dueDate: string
   dueTime: string
   priority: "low" | "medium" | "high"
@@ -18,6 +20,8 @@ export interface Task {
 export interface TaskForm {
   title: string
   description: string
+  startDate: string
+  startTime: string
   dueDate: string
   dueTime: string
   priority: "low" | "medium" | "high"

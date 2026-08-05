@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import type { TaskForm } from "~/types/tasks.type"
+import { validateDueDate } from "~/lib/validate-due-date"
 
 defineProps<{
   lists: string[]
@@ -13,6 +15,13 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>("open", { required: true })
 const form = defineModel<TaskForm>("form", { required: true })
+
+const dateError = computed(() => {
+  const { startDate, startTime, dueDate, dueTime } = form.value
+  return validateDueDate(startDate, startTime, dueDate, dueTime)
+})
+
+const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
 </script>
 
 <template>
@@ -48,13 +57,40 @@ const form = defineModel<TaskForm>("form", { required: true })
 
           <div class="grid grid-cols-2 gap-3">
             <div class="grid gap-1.5">
-              <Label for="due-date">Due date</Label>
-              <Input id="due-date" v-model="form.dueDate" type="date" class="h-11 rounded-xl" />
+              <Label for="start-date">Start date</Label>
+              <Input id="start-date" v-model="form.startDate" type="date" class="h-11 rounded-xl" required />
             </div>
             <div class="grid gap-1.5">
-              <Label for="due-time">Due time</Label>
-              <Input id="due-time" v-model="form.dueTime" type="time" class="h-11 rounded-xl" />
+              <Label for="start-time">Start time</Label>
+              <Input id="start-time" v-model="form.startTime" type="time" class="h-11 rounded-xl" required />
             </div>
+          </div>
+
+          <div class="grid gap-1.5">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="grid gap-1.5">
+                <Label for="due-date">Due date</Label>
+                <Input
+                  id="due-date"
+                  v-model="form.dueDate"
+                  type="date"
+                  :min="form.startDate || undefined"
+                  class="h-11 rounded-xl"
+                  :class="dateError ? 'border-red-500 focus:border-red-500' : ''"
+                />
+              </div>
+              <div class="grid gap-1.5">
+                <Label for="due-time">Due time</Label>
+                <Input
+                  id="due-time"
+                  v-model="form.dueTime"
+                  type="time"
+                  class="h-11 rounded-xl"
+                  :class="dateError ? 'border-red-500 focus:border-red-500' : ''"
+                />
+              </div>
+            </div>
+            <p v-if="dateError" class="text-xs text-red-500">{{ dateError }}</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -93,8 +129,10 @@ const form = defineModel<TaskForm>("form", { required: true })
             Cancel
           </Button>
           <Button
-            class="h-11 rounded-xl text-white transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
+            class="h-11 rounded-xl text-white transition-all duration-150 active:scale-[0.98]"
+            :class="isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:opacity-90'"
             style="background: linear-gradient(135deg, #1c7a6e 0%, #3fa0a0 100%);"
+            :disabled="isDisabled"
             @click="emit('save')"
           >
             {{ editingId ? "Save changes" : "Add task" }}
