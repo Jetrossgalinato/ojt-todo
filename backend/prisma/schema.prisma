@@ -20,6 +20,7 @@ model User {
   tags                 Tag[]
   preferences          UserPreferences?
   settings             UserSettings?
+  notifications        Notification[]
 }
 
 model UserPreferences {
@@ -62,6 +63,23 @@ model List {
   @@index([userId])
 }
 
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  taskId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([taskId])
+}
+
 model Tag {
   id        String     @id @default(uuid())
   name      String
@@ -95,6 +113,7 @@ model Task {
   User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   list        List?     @relation(fields: [listId], references: [id], onDelete: SetNull)
   tags        TaskTag[]
+  notifications Notification[]
 
   @@index([userId])
   @@index([listId])

@@ -48,6 +48,9 @@ function handleLogout() {
 
       <div class="mt-auto flex flex-col gap-1">
         <ClientOnly>
+          <NotificationBell />
+        </ClientOnly>
+        <ClientOnly>
           <ThemeSwitcher />
         </ClientOnly>
 

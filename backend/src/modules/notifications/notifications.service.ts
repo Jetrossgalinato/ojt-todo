@@ -2,26 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../../email/email.service';
-
-interface NotificationTask {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: string;
-  dueDate: Date | null;
-  User: {
-    id: string;
-    email: string;
-    settings: {
-      dueReminders: boolean;
-      overdueAlerts: boolean;
-      reminderTime: string;
-      highPriorityOnly: boolean;
-      emailNotifications: boolean;
-      lastDigestSentDate: Date | null;
-    } | null;
-  };
-}
+import { NotificationTask } from '../../types/notification.types';
 
 const REMINDER_PATTERNS: { regex: RegExp; ms: (n: number) => number }[] = [
   {
@@ -135,6 +116,14 @@ export class NotificationsService {
       const dueIn = (task.dueDate as Date).getTime() - now.getTime();
       if (dueIn > offsetMs) continue;
 
+      await this.createNotification({
+        userId: task.User.id,
+        type: 'due',
+        taskId: task.id,
+        title: `Reminder: "${task.title}" is due soon`,
+        message: `"${task.title}" is due on ${new Date(task.dueDate as Date).toLocaleString()}.`,
+      });
+
       if (settings.emailNotifications) {
         await this.sendTaskNotification(task.User.email, task, 'due');
       }
@@ -161,6 +150,14 @@ export class NotificationsService {
       const settings = task.User.settings;
       if (!settings || !settings.overdueAlerts) continue;
       if (settings.highPriorityOnly && task.priority !== 'high') continue;
+
+      await this.createNotification({
+        userId: task.User.id,
+        type: 'overdue',
+        taskId: task.id,
+        title: `Overdue: "${task.title}"`,
+        message: `"${task.title}" was due on ${new Date(task.dueDate as Date).toLocaleString()} and is now overdue.`,
+      });
 
       if (settings.emailNotifications) {
         await this.sendTaskNotification(task.User.email, task, 'overdue');
@@ -216,6 +213,51 @@ export class NotificationsService {
         data: { lastDigestSentDate: now },
       });
     }
+  }
+
+  private async createNotification(data: {
+    userId: string;
+    type: string;
+    taskId?: string;
+    title: string;
+    message: string;
+  }) {
+    return this.prisma.notification.create({
+      data: {
+        userId: data.userId,
+        type: data.type,
+        taskId: data.taskId ?? null,
+        title: data.title,
+        message: data.message,
+      },
+    });
+  }
+
+  async findAll(userId: string, limit = 50) {
+    const [items, unreadCount] = await Promise.all([
+      this.prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+      this.prisma.notification.count({ where: { userId, read: false } }),
+    ]);
+
+    return { items, unreadCount };
+  }
+
+  async markRead(userId: string, id: string) {
+    return this.prisma.notification.updateMany({
+      where: { id, userId },
+      data: { read: true },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
   }
 
   private async sendTaskNotification(
