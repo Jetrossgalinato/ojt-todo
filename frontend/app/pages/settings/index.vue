@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from "vue"
 import { toast } from "vue-sonner"
-import { useSettings, type UserSettings } from "~/composables/useSettings"
+import { useSettings } from "~/composables/useSettings"
+import type { UserSettings } from "~/types/settings.type"
 import { applyAccent, saveAccentLocally } from "~/composables/useAccent"
 import { getApiErrorMessage } from "~/lib/get-api-error"
+import {
+  ACCENT_COLORS,
+  REMINDER_TIMES,
+  DIGEST_TIMES,
+  DEFAULT_REMINDER_TIME,
+  DEFAULT_DIGEST_TIME,
+  SETTINGS_STORAGE_KEY,
+} from "~/constants/settings.constants"
+import { DEFAULT_ACCENT_COLOR } from "~/constants/accent.constants"
 import {
   Card,
   CardContent,
@@ -18,26 +28,20 @@ definePageMeta({ layout: "default" })
 
 const { updateSettings } = useSettings()
 
-const accentColors = ["Teal", "Blue", "Green", "Purple", "Pink", "Orange", "Slate"]
-const reminderTimes = ["1 hour before", "30 minutes before", "2 hours before", "1 day before"]
-const digestTimes = ["8:00 AM", "9:00 AM", "12:00 PM", "5:00 PM", "6:00 PM", "7:00 PM"]
-
 const saved = ref(false)
 
 let hydrated = false
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-const SETTINGS_STORAGE_KEY = "user-settings"
-
 function defaultSettings(): UserSettings {
   return {
     userId: "",
-    accentColor: "Teal",
+    accentColor: DEFAULT_ACCENT_COLOR,
     dueReminders: true,
-    reminderTime: "1 hour before",
+    reminderTime: DEFAULT_REMINDER_TIME,
     overdueAlerts: true,
     dailyDigest: false,
-    digestTime: "8:00 AM",
+    digestTime: DEFAULT_DIGEST_TIME,
     emailNotifications: false,
     notificationSound: true,
     highPriorityOnly: false,
@@ -138,7 +142,7 @@ async function saveToServer() {
               v-model="form.accentColor"
               class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
             >
-              <option v-for="color in accentColors" :key="color" :value="color">
+              <option v-for="color in ACCENT_COLORS" :key="color" :value="color">
                 {{ color }}
               </option>
             </select>
@@ -165,7 +169,7 @@ async function saveToServer() {
                 class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
                 :disabled="!form.dueReminders"
               >
-                <option v-for="time in reminderTimes" :key="time" :value="time">
+                <option v-for="time in REMINDER_TIMES" :key="time" :value="time">
                   {{ time }}
                 </option>
               </select>
@@ -196,7 +200,7 @@ async function saveToServer() {
                 class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
                 :disabled="!form.dailyDigest"
               >
-                <option v-for="time in digestTimes" :key="time" :value="time">
+                <option v-for="time in DIGEST_TIMES" :key="time" :value="time">
                   {{ time }}
                 </option>
               </select>

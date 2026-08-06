@@ -1,14 +1,8 @@
-const ACCENT_CLASSES: Record<string, string> = {
-  Teal: "accent-teal",
-  Blue: "accent-blue",
-  Green: "accent-green",
-  Purple: "accent-purple",
-  Pink: "accent-pink",
-  Orange: "accent-orange",
-  Slate: "accent-slate",
-}
-
-const ACCENT_STORAGE_KEY = "accent-color"
+import {
+  ACCENT_CLASSES,
+  ACCENT_STORAGE_KEY,
+  DEFAULT_ACCENT_COLOR,
+} from "~/constants/accent.constants"
 
 export function applyAccent(color: string): void {
   const root = document.documentElement
@@ -19,7 +13,7 @@ export function applyAccent(color: string): void {
 
 export function loadAccent(): void {
   const saved = localStorage.getItem(ACCENT_STORAGE_KEY)
-  applyAccent(saved ?? "Teal")
+  applyAccent(saved ?? DEFAULT_ACCENT_COLOR)
 }
 
 export function saveAccentLocally(color: string): void {
