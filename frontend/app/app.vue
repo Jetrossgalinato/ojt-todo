@@ -2,6 +2,7 @@
 import "vue-sonner/style.css"
 import { Toaster, toast } from "vue-sonner"
 import { ErrorIcon } from "@/lib/toast-icons"
+import { loadAccent } from "~/composables/useAccent"
 
 const colorMode = useColorMode()
 const route = useRoute()
@@ -28,6 +29,7 @@ function handleToastQuery() {
 }
 
 onMounted(() => {
+  loadAccent()
   nextTick(() => {
     setTimeout(() => {
       handleToastQuery()

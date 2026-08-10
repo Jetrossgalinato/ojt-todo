@@ -55,7 +55,7 @@ const listStyles: Record<string, string> = {
               <input
                 type="checkbox"
                 :checked="task.completed"
-                class="h-5 w-5 rounded-md border-border accent-teal-600 cursor-pointer"
+                class="h-5 w-5 rounded-md border-border accent-primary cursor-pointer"
                 @change="emit('toggle', task.id)"
               >
             </TableCell>
@@ -111,7 +111,7 @@ const listStyles: Record<string, string> = {
                 <span
                   v-for="tag in task.tags"
                   :key="tag.id"
-                  class="inline-block rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700"
+                  class="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
                 >
                   {{ tag.name }}
                 </span>

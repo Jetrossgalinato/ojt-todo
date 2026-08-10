@@ -19,6 +19,8 @@ model User {
   lists                List[]
   tags                 Tag[]
   preferences          UserPreferences?
+  settings             UserSettings?
+  notifications        Notification[]
 }
 
 model UserPreferences {
@@ -32,6 +34,22 @@ model UserPreferences {
   User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model UserSettings {
+  userId             String    @id
+  accentColor        String    @default("Teal")
+  dueReminders       Boolean   @default(true)
+  reminderTime       String    @default("1 hour before")
+  overdueAlerts      Boolean   @default(true)
+  dailyDigest        Boolean   @default(false)
+  digestTime         String    @default("8:00 AM")
+  emailNotifications Boolean   @default(false)
+  notificationSound  Boolean   @default(true)
+  highPriorityOnly   Boolean   @default(false)
+  lastDigestSentDate DateTime? @db.Date
+  updatedAt          DateTime  @default(now()) @updatedAt
+  User               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model List {
   id        String   @id @default(uuid())
   name      String
@@ -43,6 +61,23 @@ model List {
 
   @@unique([userId, name])
   @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  taskId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([taskId])
 }
 
 model Tag {
@@ -69,6 +104,8 @@ model Task {
   dueTime     String?   @db.VarChar(8)
   completedAt DateTime?
   starred     Boolean   @default(false)
+  notifiedDue Boolean   @default(false)
+  notifiedOverdue Boolean @default(false)
   userId      String
   listId      String?
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
@@ -76,6 +113,7 @@ model Task {
   User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   list        List?     @relation(fields: [listId], references: [id], onDelete: SetNull)
   tags        TaskTag[]
+  notifications Notification[]
 
   @@index([userId])
   @@index([listId])

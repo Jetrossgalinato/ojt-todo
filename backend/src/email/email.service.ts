@@ -28,4 +28,13 @@ export class EmailService {
       `,
     });
   }
+
+  async sendTaskEmail(to: string, subject: string, taskDetails: string) {
+    await this.resend.emails.send({
+      from: 'onboarding@resend.dev', // default sender, safe para sa dev/testing
+      to,
+      subject,
+      html: taskDetails,
+    });
+  }
 }

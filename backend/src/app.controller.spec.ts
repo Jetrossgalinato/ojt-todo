@@ -1,12 +1,24 @@
-import { Controller, Get } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-@Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+describe('AppController', () => {
+  let controller: AppController;
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-}
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+
+    controller = module.get<AppController>(AppController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  it('should return hello message', () => {
+    expect(controller.getHello()).toEqual('Hello World!');
+  });
+});
