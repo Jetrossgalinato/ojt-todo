@@ -15,6 +15,7 @@ export interface NotificationTask {
       emailNotifications: boolean;
       lastDigestSentDate: Date | null;
     } | null;
+    preferences: { timezone: string } | null;
   };
 }
 

@@ -66,6 +66,35 @@ function zonedMinutesOfDay(date: Date, timeZone: string): number {
   return (Number(parts.hour) % 24) * 60 + Number(parts.minute);
 }
 
+function formatRelativeTime(ms: number): string {
+  const totalMinutes = Math.max(1, Math.round(ms / 60_000));
+  if (totalMinutes < 60)
+    return `${totalMinutes} minute${totalMinutes === 1 ? '' : 's'}`;
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (hours < 24) {
+    if (mins === 0) return `${hours} hour${hours === 1 ? '' : 's'}`;
+    return `${hours} hour${hours === 1 ? '' : 's'} and ${mins} minute${mins === 1 ? '' : 's'}`;
+  }
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'}`;
+}
+
+function formatDueDate(date: Date, timeZone?: string): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      timeZone: timeZone ? safeTimeZone(timeZone) : undefined,
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+  } catch {
+    return date.toLocaleString();
+  }
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -84,7 +113,7 @@ export class NotificationsService {
     private readonly emailService: EmailService,
   ) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   async checkAndSendNotifications() {
     try {
       await this.sendDueReminders();
@@ -104,15 +133,18 @@ export class NotificationsService {
         notifiedDue: false,
         dueDate: { gt: now },
       },
-      include: { User: { include: { settings: true } } },
+      include: { User: { include: { settings: true, preferences: true } } },
     });
 
     for (const task of tasks as NotificationTask[]) {
       const settings = task.User.settings;
-      if (!settings || !settings.dueReminders) continue;
-      if (settings.highPriorityOnly && task.priority !== 'high') continue;
+      if (settings && !settings.dueReminders) continue;
+      if ((settings?.highPriorityOnly ?? false) && task.priority !== 'high')
+        continue;
 
-      const offsetMs = parseReminderTime(settings.reminderTime);
+      const offsetMs = parseReminderTime(
+        settings?.reminderTime ?? '1 hour before',
+      );
       const dueIn = (task.dueDate as Date).getTime() - now.getTime();
       if (dueIn > offsetMs) continue;
 
@@ -120,11 +152,11 @@ export class NotificationsService {
         userId: task.User.id,
         type: 'due',
         taskId: task.id,
-        title: `Reminder: "${task.title}" is due soon`,
-        message: `"${task.title}" is due on ${new Date(task.dueDate as Date).toLocaleString()}.`,
+        title: `Task Reminder: "${task.title}" is due soon`,
+        message: `Your task "${task.title}" is due in ${formatRelativeTime(dueIn)}. Due: ${formatDueDate(task.dueDate as Date, task.User.preferences?.timezone)}.`,
       });
 
-      if (settings.emailNotifications) {
+      if (settings?.emailNotifications) {
         await this.sendTaskNotification(task.User.email, task, 'due');
       }
       await this.prisma.task.update({
@@ -143,23 +175,22 @@ export class NotificationsService {
         notifiedOverdue: false,
         dueDate: { lt: now },
       },
-      include: { User: { include: { settings: true } } },
+      include: { User: { include: { settings: true, preferences: true } } },
     });
 
     for (const task of tasks as NotificationTask[]) {
       const settings = task.User.settings;
-      if (!settings || !settings.overdueAlerts) continue;
-      if (settings.highPriorityOnly && task.priority !== 'high') continue;
+      if (settings && !settings.overdueAlerts) continue;
 
       await this.createNotification({
         userId: task.User.id,
         type: 'overdue',
         taskId: task.id,
         title: `Overdue: "${task.title}"`,
-        message: `"${task.title}" was due on ${new Date(task.dueDate as Date).toLocaleString()} and is now overdue.`,
+        message: `"${task.title}" was due on ${formatDueDate(task.dueDate as Date, task.User.preferences?.timezone)} and is now overdue.`,
       });
 
-      if (settings.emailNotifications) {
+      if (settings?.emailNotifications) {
         await this.sendTaskNotification(task.User.email, task, 'overdue');
       }
       await this.prisma.task.update({
