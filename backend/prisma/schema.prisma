@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  password             String
+  name                 String?
+  resetPasswordToken   String?   @unique
+  resetPasswordExpires DateTime? @db.Timestamp(6)
+  createdAt            DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt            DateTime  @default(now()) @db.Timestamp(6)
+  tasks                Task[]
+  lists                List[]
+  tags                 Tag[]
+  preferences          UserPreferences?
+  settings             UserSettings?
+  notifications        Notification[]
+}
+
+model UserPreferences {
+  id                String  @id @default(uuid())
+  userId            String  @unique
+  defaultView       String  @default("today")
+  timezone          String  @default("UTC")
+  theme             String  @default("system")
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  userId             String    @id
+  accentColor        String    @default("Teal")
+  dueReminders       Boolean   @default(true)
+  reminderTime       String    @default("1 hour before")
+  overdueAlerts      Boolean   @default(true)
+  dailyDigest        Boolean   @default(false)
+  digestTime         String    @default("8:00 AM")
+  emailNotifications Boolean   @default(false)
+  notificationSound  Boolean   @default(true)
+  highPriorityOnly   Boolean   @default(false)
+  lastDigestSentDate DateTime? @db.Date
+  updatedAt          DateTime  @default(now()) @updatedAt
+  User               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model List {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @db.Timestamp(6)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  taskId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([taskId])
+}
+
+model Tag {
+  id        String     @id @default(uuid())
+  name      String
+  userId    String
+  createdAt DateTime   @default(now()) @db.Timestamp(6)
+  User      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     TaskTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  priority    String    @default("medium")
+  status      String    @default("pending")
+  startDate   DateTime
+  startTime   String    @db.VarChar(8)
+  dueDate     DateTime?
+  dueTime     String?   @db.VarChar(8)
+  completedAt DateTime?
+  starred     Boolean   @default(false)
+  notifiedDue Boolean   @default(false)
+  notifiedOverdue Boolean @default(false)
+  userId      String
+  listId      String?
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime  @default(now()) @db.Timestamp(6)
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  list        List?     @relation(fields: [listId], references: [id], onDelete: SetNull)
+  tags        TaskTag[]
+  notifications Notification[]
+
+  @@index([userId])
+  @@index([listId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([completedAt])
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+  Task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  Tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+}
