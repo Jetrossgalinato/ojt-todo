@@ -15,8 +15,19 @@ export class EmailService {
     return this.resend;
   }
 
+  private isConfigured(): boolean {
+    return !!process.env.RESEND_API_KEY;
+  }
+
   async sendPasswordResetEmail(to: string, resetToken: string) {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    if (!this.isConfigured()) {
+      console.log(
+        `[dev] RESEND_API_KEY not set — password reset link for ${to}: ${resetLink}`,
+      );
+      return;
+    }
 
     await this.getClient().emails.send({
       from: 'onboarding@resend.dev', // default sender, safe para sa dev/testing
@@ -36,6 +47,13 @@ export class EmailService {
   }
 
   async sendTaskEmail(to: string, subject: string, taskDetails: string) {
+    if (!this.isConfigured()) {
+      console.log(
+        `[dev] RESEND_API_KEY not set — skipping email to ${to}: ${subject}`,
+      );
+      return;
+    }
+
     await this.getClient().emails.send({
       from: 'onboarding@resend.dev', // default sender, safe para sa dev/testing
       to,
