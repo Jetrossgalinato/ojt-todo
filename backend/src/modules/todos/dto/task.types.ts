@@ -12,7 +12,7 @@ export interface NormalizedTask {
   starred: boolean;
   userId: string;
   listId: string | null;
-  list: { id: string; name: string } | null;
+  list: string | null;
   tags: { id: string; name: string }[];
   createdAt: Date;
   updatedAt: Date;

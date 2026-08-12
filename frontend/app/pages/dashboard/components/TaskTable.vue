@@ -33,7 +33,7 @@ const listStyles: Record<string, string> = {
           <TableHead class="w-10"></TableHead>
           <TableHead>Task</TableHead>
           <TableHead>Priority</TableHead>
-          <TableHead>List</TableHead>
+          <TableHead>Category</TableHead>
           <TableHead>Start</TableHead>
           <TableHead>Due</TableHead>
           <TableHead>Tags</TableHead>
