@@ -1,4 +1,4 @@
-import type { Task, TaskForm } from "~/types/tasks.type"
+import type { PaginatedResult, Task, TaskForm } from "~/types/tasks.type"
 import { useAuthStore } from "~/stores/auth"
 import { tagsToApiPayload } from "~/lib/tags"
 
@@ -14,9 +14,19 @@ export function useTasks() {
 
   const apiBase = config.public.apiBase
 
-  async function fetchTasks(): Promise<Task[]> {
-    const res = await $fetch<{ data: Task[] }>(`${apiBase}/tasks`, { headers: authHeaders() })
-    return res.data
+  async function fetchTasks(params?: {
+    page?: number
+    limit?: number
+    tag?: string
+  }): Promise<PaginatedResult<Task>> {
+    const query = new URLSearchParams()
+    if (params?.page) query.set("page", String(params.page))
+    if (params?.limit) query.set("limit", String(params.limit))
+    if (params?.tag) query.set("tag", params.tag)
+    const qs = query.toString()
+    return await $fetch<PaginatedResult<Task>>(`${apiBase}/tasks${qs ? `?${qs}` : ""}`, {
+      headers: authHeaders(),
+    })
   }
 
   async function createTask(form: TaskForm): Promise<Task> {
@@ -37,12 +47,12 @@ export function useTasks() {
   }
 
   async function updateTask(id: string, data: Partial<Task>): Promise<Task> {
-    const { tags, ...rest } = data
+    const { tags, list, ...rest } = data
     const payload = {
       ...rest,
       dueDate: data.dueDate || undefined,
       dueTime: data.dueTime || undefined,
-      listName: data.list,
+      listId: data.listId ?? undefined,
       tags: tags !== undefined ? tagsToApiPayload(typeof tags === "string" ? tags : tags.map((t) => t.name).join(", ")) : undefined,
     }
     return await $fetch<Task>(`${apiBase}/tasks/${id}`, {
@@ -66,5 +76,13 @@ export function useTasks() {
     })
   }
 
-  return { fetchTasks, createTask, updateTask, toggleComplete, deleteTask }
+  async function batchDeleteTasks(ids: string[]): Promise<{ deleted: number }> {
+    return await $fetch<{ deleted: number }>(`${apiBase}/tasks/batch`, {
+      method: "DELETE",
+      headers: authHeaders(),
+      body: { ids },
+    })
+  }
+
+  return { fetchTasks, createTask, updateTask, toggleComplete, deleteTask, batchDeleteTasks }
 }

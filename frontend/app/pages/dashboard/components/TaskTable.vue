@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { Star } from 'lucide-vue-next'
+import { computed } from "vue"
+import { Eye, Star } from 'lucide-vue-next'
 import type { Task } from "~/types/tasks.type"
 
-defineProps<{
+const props = defineProps<{
   tasks: Task[]
+  selectedIds: string[]
 }>()
 
 const emit = defineEmits<{
+  view: [task: Task]
   edit: [task: Task]
   delete: [id: string]
   toggle: [id: string]
+  select: [id: string]
+  selectAll: []
 }>()
 
 const priorityStyles: Record<string, string> = {
@@ -23,6 +28,33 @@ const listStyles: Record<string, string> = {
   Personal: "bg-violet-50 text-violet-700",
   Errands: "bg-orange-50 text-orange-700",
 }
+
+const visibleIds = computed(() => props.tasks.map((t) => t.id))
+
+const selectedVisibleCount = computed(
+  () => props.tasks.filter((t) => props.selectedIds.includes(t.id)).length,
+)
+
+const isAllSelected = computed(
+  () => props.tasks.length > 0 && selectedVisibleCount.value === props.tasks.length,
+)
+
+const isIndeterminate = computed(
+  () => selectedVisibleCount.value > 0 && !isAllSelected.value,
+)
+
+function isCompleted(task: Task) {
+  return task.status === "completed"
+}
+
+function dueLabel(task: Task) {
+  if (!task.dueDate) return "—"
+  return task.dueTime ? `${task.dueDate} ${task.dueTime}` : task.dueDate
+}
+
+function listName(task: Task) {
+  return task.list?.name
+}
 </script>
 
 <template>
@@ -30,6 +62,16 @@ const listStyles: Record<string, string> = {
     <Table>
       <TableHeader>
         <TableRow class="hover:bg-transparent">
+          <TableHead class="w-10">
+            <input
+              type="checkbox"
+              :checked="isAllSelected"
+              :indeterminate.prop="isIndeterminate"
+              aria-label="Select all tasks"
+              class="h-4 w-4 rounded border-border accent-teal-600 cursor-pointer"
+              @change="emit('selectAll')"
+            >
+          </TableHead>
           <TableHead class="w-10"></TableHead>
           <TableHead>Task</TableHead>
           <TableHead>Priority</TableHead>
@@ -43,18 +85,29 @@ const listStyles: Record<string, string> = {
       <TableBody>
         <template v-if="tasks.length === 0">
           <TableRow>
-            <TableCell :colspan="8" class="py-10 text-center text-sm text-muted-foreground">
+            <TableCell :colspan="9" class="py-10 text-center text-sm text-muted-foreground">
               No tasks yet
             </TableCell>
           </TableRow>
         </template>
 
         <template v-else>
-          <TableRow v-for="task in tasks" :key="task.id">
+          <TableRow v-for="task in tasks" :key="task.id" :class="isCompleted(task) ? 'opacity-60' : ''">
             <TableCell class="w-10">
               <input
                 type="checkbox"
-                :checked="task.completed"
+                :checked="selectedIds.includes(task.id)"
+                aria-label="Select task"
+                class="h-4 w-4 rounded border-border accent-teal-600 cursor-pointer"
+                @change="emit('select', task.id)"
+              >
+            </TableCell>
+
+            <TableCell class="w-10">
+              <input
+                type="checkbox"
+                :checked="isCompleted(task)"
+                aria-label="Toggle complete"
                 class="h-5 w-5 rounded-md border-border accent-teal-600 cursor-pointer"
                 @change="emit('toggle', task.id)"
               >
@@ -65,7 +118,7 @@ const listStyles: Record<string, string> = {
                 <div class="flex flex-col">
                   <p
                     class="text-sm font-medium text-foreground"
-                    :class="task.completed ? 'text-muted-foreground line-through' : ''"
+                    :class="isCompleted(task) ? 'text-muted-foreground line-through' : ''"
                   >
                     {{ task.title }}
                   </p>
@@ -81,21 +134,23 @@ const listStyles: Record<string, string> = {
             </TableCell>
 
             <TableCell>
-              <span
-                class="rounded-full px-2.5 py-1 text-xs font-medium capitalize"
-                :class="priorityStyles[task.priority] ?? 'bg-muted text-muted-foreground'"
+              <Badge
+                variant="secondary"
+                class="capitalize"
+                :class="priorityStyles[task.priority] ?? ''"
               >
                 {{ task.priority }}
-              </span>
+              </Badge>
             </TableCell>
 
             <TableCell>
-              <span
-                class="rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="listStyles[task.list] ?? 'bg-muted text-muted-foreground'"
+              <Badge
+                v-if="listName(task)"
+                :class="listStyles[listName(task)!] ?? ''"
               >
-                {{ task.list }}
-              </span>
+                {{ listName(task) }}
+              </Badge>
+              <span v-else class="text-sm text-muted-foreground">—</span>
             </TableCell>
 
             <TableCell class="text-sm text-muted-foreground">
@@ -103,7 +158,7 @@ const listStyles: Record<string, string> = {
             </TableCell>
 
             <TableCell class="text-sm text-muted-foreground">
-              <div class="whitespace-nowrap">{{ task.dueDate }} {{ task.dueTime }}</div>
+              <div class="whitespace-nowrap">{{ dueLabel(task) }}</div>
             </TableCell>
 
             <TableCell class="text-sm text-muted-foreground">
@@ -121,6 +176,10 @@ const listStyles: Record<string, string> = {
 
             <TableCell class="text-right">
               <div class="flex items-center justify-end gap-1">
+                <Button variant="ghost" size="sm" class="rounded-lg" @click="emit('view', task)">
+                  <Eye class="size-4" />
+                  View
+                </Button>
                 <Button variant="ghost" size="sm" class="rounded-lg" @click="emit('edit', task)">
                   Edit
                 </Button>
