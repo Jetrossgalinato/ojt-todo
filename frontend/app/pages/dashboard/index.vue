@@ -11,7 +11,7 @@ import TaskDialog from "./components/TaskDialog.vue"
 import TaskViewDialog from "./components/TaskViewDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 
-const { fetchTasks, createTask, updateTask, toggleComplete: apiToggleComplete, deleteTask: apiDeleteTask, batchDeleteTasks } = useTasks()
+const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask, batchDeleteTasks } = useTasks()
 const { fetchTags } = useTags()
 const authStore = useAuthStore()
 
@@ -206,18 +206,6 @@ async function deleteSelected() {
   }
 }
 
-async function toggleComplete(id: string) {
-  const task = tasks.value.find((t) => t.id === id)
-  if (!task) return
-
-  try {
-    const updated = await apiToggleComplete(id)
-    Object.assign(task, updated)
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to update task."))
-  }
-}
-
 function toggleSelect(id: string) {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter((s) => s !== id)
@@ -283,7 +271,6 @@ function toggleSelectAll() {
       @view="viewTask"
       @edit="editTask"
       @delete="deleteTask"
-      @toggle="toggleComplete"
       @select="toggleSelect"
       @select-all="toggleSelectAll"
     />

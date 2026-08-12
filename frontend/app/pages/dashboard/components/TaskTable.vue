@@ -12,7 +12,6 @@ const emit = defineEmits<{
   view: [task: Task]
   edit: [task: Task]
   delete: [id: string]
-  toggle: [id: string]
   select: [id: string]
   selectAll: []
 }>()
@@ -72,7 +71,6 @@ function listName(task: Task) {
               @change="emit('selectAll')"
             >
           </TableHead>
-          <TableHead class="w-10"></TableHead>
           <TableHead>Task</TableHead>
           <TableHead>Priority</TableHead>
           <TableHead>List</TableHead>
@@ -85,7 +83,7 @@ function listName(task: Task) {
       <TableBody>
         <template v-if="tasks.length === 0">
           <TableRow>
-            <TableCell :colspan="9" class="py-10 text-center text-sm text-muted-foreground">
+            <TableCell :colspan="8" class="py-10 text-center text-sm text-muted-foreground">
               No tasks yet
             </TableCell>
           </TableRow>
@@ -100,16 +98,6 @@ function listName(task: Task) {
                 aria-label="Select task"
                 class="h-4 w-4 rounded border-border accent-teal-600 cursor-pointer"
                 @change="emit('select', task.id)"
-              >
-            </TableCell>
-
-            <TableCell class="w-10">
-              <input
-                type="checkbox"
-                :checked="isCompleted(task)"
-                aria-label="Toggle complete"
-                class="h-5 w-5 rounded-md border-border accent-teal-600 cursor-pointer"
-                @change="emit('toggle', task.id)"
               >
             </TableCell>
 
