@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label"
 
 definePageMeta({ layout: "default" })
 
-const { updateSettings } = useSettings()
+const { fetchSettings, updateSettings } = useSettings()
 
 const saved = ref(false)
 
@@ -63,8 +63,15 @@ function loadLocalSettings(): UserSettings {
 
 const form = reactive<UserSettings>(defaultSettings())
 
-onMounted(() => {
+onMounted(async () => {
   Object.assign(form, loadLocalSettings())
+  try {
+    const serverSettings = await fetchSettings()
+    Object.assign(form, defaultSettings(), serverSettings)
+    saveLocally()
+  } catch {
+    // server unavailable — keep local values
+  }
   applyAccent(form.accentColor)
   hydrated = true
 })
