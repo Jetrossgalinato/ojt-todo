@@ -3,16 +3,22 @@ import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private resend: Resend;
+  private resend: Resend | null = null;
 
-  constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+  private getClient(): Resend {
+    if (!this.resend) {
+      if (!process.env.RESEND_API_KEY) {
+        throw new Error('RESEND_API_KEY is not set');
+      }
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+    }
+    return this.resend;
   }
 
   async sendPasswordResetEmail(to: string, resetToken: string) {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-    await this.resend.emails.send({
+    await this.getClient().emails.send({
       from: 'onboarding@resend.dev', // default sender, safe para sa dev/testing
       to,
       subject: 'Reset your password',
@@ -30,7 +36,7 @@ export class EmailService {
   }
 
   async sendTaskEmail(to: string, subject: string, taskDetails: string) {
-    await this.resend.emails.send({
+    await this.getClient().emails.send({
       from: 'onboarding@resend.dev', // default sender, safe para sa dev/testing
       to,
       subject,

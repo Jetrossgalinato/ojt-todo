@@ -8,17 +8,20 @@ import {
   HttpCode,
   HttpStatus,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GoogleAuthGuard } from './google-auth.guard';
 
 interface AuthRequest extends Request {
-  user: { id: string };
+  user: { id: string; email: string; name: string | null };
 }
 
 @Controller('auth')
@@ -34,6 +37,22 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth() {
+    // Passport redirects to Google — this handler is never reached
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleCallback(@Request() req: AuthRequest, @Res() res: Response) {
+    const auth = this.authService.googleLogin(req.user);
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    return res.redirect(
+      `${frontendUrl}/auth/callback?token=${auth.accessToken}`,
+    );
   }
 
   @Post('forgot-password')

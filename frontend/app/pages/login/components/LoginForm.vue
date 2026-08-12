@@ -51,8 +51,8 @@ async function onSubmit(values: Record<string, any>) {
 }
 
 function loginWithGoogle() {
-  // TODO: wire this to your backend's Google OAuth endpoint
-  // e.g. window.location.href = `${useRuntimeConfig().public.apiBase}/auth/google`
+  const config = useRuntimeConfig()
+  window.location.href = `${config.public.apiBase}/auth/google`
 }
 </script>
 

@@ -63,13 +63,14 @@ onUnmounted(() => {
       </div>
 
 
-      <!-- Illustration (transparent background, overlays the blobs) -->
-      <div class="relative z-10 flex flex-1 items-center justify-center px-10">
+      <!-- Illustration + tagline (enlarged to fill/match the left panel) -->
+      <div class="relative z-10 flex flex-1 flex-col items-center justify-center gap-10 px-10 lg:px-16">
         <img
           src="/images/illustration.png"
           alt="Plan your day, manage your tasks, and never miss an important deadline."
-          class="w-full max-w-xl object-contain"
+          class="w-full max-w-3xl object-contain drop-shadow-2xl"
         >
+        
       </div>
     </div>
   </div>
