@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "@lucide/vue"
 import { useAuth } from "@/composables/useAuth"
 
 const { register } = useAuth()
+const { openGoogleAuth } = useGoogleAuth()
 
 const formSchema = toTypedSchema(
   z.object({
@@ -44,11 +45,6 @@ async function onSubmit(values: Record<string, any>) {
   } finally {
     isSubmitting.value = false
   }
-}
-
-function registerWithGoogle() {
-  const config = useRuntimeConfig()
-  window.location.href = `${config.public.apiBase}/auth/google`
 }
 </script>
 
@@ -180,7 +176,7 @@ function registerWithGoogle() {
         type="button"
         variant="outline"
         class="h-11 w-full rounded-xl font-medium text-foreground transition-all duration-150 hover:bg-accent active:scale-[0.98]"
-        @click="registerWithGoogle"
+        @click="openGoogleAuth"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="mr-2 h-4 w-4">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z" />

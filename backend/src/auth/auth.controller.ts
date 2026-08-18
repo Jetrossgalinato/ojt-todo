@@ -50,9 +50,17 @@ export class AuthController {
   async googleCallback(@Request() req: AuthRequest, @Res() res: Response) {
     const auth = this.authService.googleLogin(req.user);
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-    return res.redirect(
-      `${frontendUrl}/auth/callback?token=${auth.accessToken}`,
-    );
+
+    const token = JSON.stringify(auth.accessToken);
+    const user = JSON.stringify(auth.user);
+    const origin = JSON.stringify(frontendUrl);
+
+    res.send(`<!DOCTYPE html><html><body><script>
+(function(){
+  var t=${token},u=${user},o=${origin};
+  if(window.opener){window.opener.postMessage({token:t,user:u},o);window.close();}
+  else{window.location.href=o+'/auth/callback?token='+t;}
+})();</script></body></html>`);
   }
 
   @Post('forgot-password')
