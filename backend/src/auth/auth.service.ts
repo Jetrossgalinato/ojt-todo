@@ -49,7 +49,7 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -158,6 +158,12 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('User not found');
 
+    if (!user.password) {
+      throw new BadRequestException(
+        'No password is set for this account (signed in with Google).',
+      );
+    }
+
     const isValid = await bcrypt.compare(dto.currentPassword, user.password);
     if (!isValid) {
       throw new UnauthorizedException('Current password is incorrect');
@@ -216,14 +222,51 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('User not found');
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      throw new UnauthorizedException('Incorrect password');
+    if (user.password) {
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        throw new UnauthorizedException('Incorrect password');
+      }
     }
 
     await this.prisma.user.delete({ where: { id: userId } });
 
     return { message: 'Account deleted successfully' };
+  }
+
+  async validateGoogleUser(profile: { email: string; name: string | null }) {
+    if (!profile.email) {
+      throw new BadRequestException('Google account has no email address');
+    }
+
+    let user = await this.prisma.user.findUnique({
+      where: { email: profile.email },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email: profile.email,
+          password: null,
+          name: profile.name ?? null,
+        },
+      });
+    } else if (!user.name && profile.name) {
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { name: profile.name },
+      });
+    }
+
+    return user;
+  }
+
+  googleLogin(user: {
+    id: string;
+    email: string;
+    name: string | null;
+  }) {
+    return this.buildAuthResponse(user);
   }
 
   private buildAuthResponse(user: {

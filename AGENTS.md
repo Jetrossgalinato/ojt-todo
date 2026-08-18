@@ -33,9 +33,10 @@ npm run generate     # static site generation
 
 ## Environment
 
-- Backend expects PostgreSQL on `localhost:5433` (see `backend/.env`)
+- Backend expects PostgreSQL on `localhost:5432` (see `backend/.env`)
 - Frontend proxies API to `localhost:4000` (via `NUXT_PUBLIC_API_BASE`)
-- Backend env vars: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`, `FRONTEND_URL`
+- Backend env vars: `DATABASE_URL`, `JWT_SECRET`, `RESEND_API_KEY`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `BACKEND_URL`
+- Google OAuth: login button redirects to `/auth/google`, callback redirects to `FRONTEND_URL/auth/callback?token=...`; Google users have `password = null`
 
 ## Key architecture notes
 
