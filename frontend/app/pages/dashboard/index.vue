@@ -1,5 +1,6 @@
 ﻿<script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, nextTick } from "vue"
+import gsap from "gsap"
 import { toast } from "vue-sonner"
 import { useTasks } from "~/composables/useTasks"
 import { useTags, type Tag } from "~/composables/useTags"
@@ -21,6 +22,10 @@ const tasks = ref<Task[]>([])
 const tags = ref<Tag[]>([])
 const selectedTag = ref<string | null>(null)
 
+const headerRef = ref<HTMLElement | null>(null)
+const tagFilterRef = ref<HTMLElement | null>(null)
+const tableRef = ref<HTMLElement | null>(null)
+
 const filteredTasks = computed(() => {
   if (!selectedTag.value) return tasks.value
   return tasks.value.filter((t) =>
@@ -38,6 +43,29 @@ onMounted(async () => {
     tags.value = fetchedTags
   } catch (error: unknown) {
     toast.error(getApiErrorMessage(error, "Failed to load tasks."))
+  }
+
+  await nextTick()
+
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } })
+
+  if (headerRef.value) {
+    tl.from(headerRef.value, { opacity: 0, y: -20, duration: 0.5 })
+  }
+
+  if (tagFilterRef.value && tags.value.length > 0) {
+    const tagEl = tagFilterRef.value.$el || tagFilterRef.value
+    tl.from(tagEl, { opacity: 0, y: -10, duration: 0.4 }, "-=0.3")
+  }
+
+  if (tableRef.value) {
+    const tableEl = tableRef.value.$el || tableRef.value
+    tl.from(tableEl, { opacity: 0, y: 20, duration: 0.5 }, "-=0.3")
+
+    const rows = tableEl.querySelectorAll("tbody tr")
+    if (rows?.length) {
+      tl.from(rows, { opacity: 0, y: 15, duration: 0.3, stagger: 0.05 }, "-=0.3")
+    }
   }
 })
 
@@ -163,7 +191,7 @@ async function toggleComplete(id: string) {
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div class="flex items-center justify-between">
+    <div ref="headerRef" class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
@@ -176,7 +204,7 @@ async function toggleComplete(id: string) {
 </Button>
     </div>
 
-    <TagFilter v-if="tags.length > 0" v-model:selected-tag="selectedTag" :tags="tags" />
+    <TagFilter v-if="tags.length > 0" ref="tagFilterRef" v-model:selected-tag="selectedTag" :tags="tags" />
 
     <TaskDialog
       v-model:open="dialogOpen"
@@ -188,6 +216,7 @@ async function toggleComplete(id: string) {
     />
 
     <TaskTable
+      ref="tableRef"
       :tasks="filteredTasks"
       @edit="editTask"
       @delete="deleteTask"
