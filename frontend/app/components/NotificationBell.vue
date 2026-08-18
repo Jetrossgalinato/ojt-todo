@@ -96,7 +96,7 @@ function formatTime(value: string) {
 
     <div
       v-if="open"
-      class="absolute left-0 bottom-full mb-2 w-80 rounded-xl border border-border bg-card shadow-lg z-50"
+      class="absolute left-0 bottom-full mb-2 w-72 sm:w-80 rounded-xl border border-border bg-card shadow-lg z-50"
     >
       <div class="flex items-center justify-between border-b border-border px-4 py-3">
         <p class="text-sm font-semibold text-foreground">Notifications</p>

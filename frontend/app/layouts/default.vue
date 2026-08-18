@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ClipboardList, CheckSquare, Settings, LogOut } from 'lucide-vue-next'
+import { ClipboardList, CheckSquare, Settings, LogOut, Menu, X } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
 
 const route = useRoute()
 const authStore = useAuthStore()
+const sidebarOpen = ref(false)
 
 const navItems = [
   { label: 'My Tasks', to: '/dashboard', icon: CheckSquare },
@@ -21,14 +22,37 @@ function handleLogout() {
   toast.success('Signed out successfully')
   navigateTo('/login')
 }
+
+watch(() => route.path, () => {
+  sidebarOpen.value = false
+})
 </script>
 
 <template>
   <div class="flex min-h-screen bg-gray-50 dark:bg-zinc-950">
-    <aside class="w-56 bg-sidebar-primary text-sidebar-primary-foreground flex flex-col py-6 px-4">
-      <div class="flex items-center gap-2 px-2 mb-8">
-        <ClipboardList class="w-6 h-6" />
-        <span class="text-lg font-bold">Todo</span>
+    <!-- Mobile overlay backdrop -->
+    <div
+      v-if="sidebarOpen"
+      class="fixed inset-0 z-40 bg-black/50 lg:hidden"
+      @click="sidebarOpen = false"
+    />
+
+    <!-- Sidebar -->
+    <aside
+      class="fixed inset-y-0 left-0 z-50 flex w-56 flex-col bg-sidebar-primary py-6 px-4 text-sidebar-primary-foreground transition-transform duration-200 ease-in-out lg:static lg:translate-x-0"
+      :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+      <div class="flex items-center justify-between px-2 mb-8">
+        <div class="flex items-center gap-2">
+          <ClipboardList class="w-6 h-6" />
+          <span class="text-lg font-bold">Todo</span>
+        </div>
+        <button
+          class="rounded-lg p-1 text-sidebar-primary-foreground/80 hover:bg-white/10 lg:hidden"
+          @click="sidebarOpen = false"
+        >
+          <X class="w-5 h-5" />
+        </button>
       </div>
 
       <nav class="flex flex-col gap-1 flex-1">
@@ -64,8 +88,25 @@ function handleLogout() {
       </div>
     </aside>
 
-    <main class="flex-1 p-8">
-      <slot />
-    </main>
+    <!-- Main content area -->
+    <div class="flex flex-1 flex-col min-w-0">
+      <!-- Mobile top bar -->
+      <header class="flex items-center gap-3 border-b border-border bg-background px-4 py-3 lg:hidden">
+        <button
+          class="rounded-lg p-1.5 text-foreground hover:bg-muted transition-colors"
+          @click="sidebarOpen = true"
+        >
+          <Menu class="w-5 h-5" />
+        </button>
+        <div class="flex items-center gap-2">
+          <ClipboardList class="w-5 h-5 text-primary" />
+          <span class="text-lg font-bold">Todo</span>
+        </div>
+      </header>
+
+      <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <slot />
+      </main>
+    </div>
   </div>
 </template>
