@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware((to) => {
   authStore.restoreAuth()
 
   const isAuthenticated = authStore.isAuthenticated
-  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password', '/auth/callback']
+  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password']
   const isPublicPage = publicPages.includes(to.path)
 
   if (to.path === '/') {

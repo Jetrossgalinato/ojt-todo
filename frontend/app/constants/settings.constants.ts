@@ -1,8 +1,11 @@
 export const ACCENT_COLORS = [
   "Teal",
-  "Pastel Blue",
-  "Pastel Green",
-  "Pastel Purple",
+  "Blue",
+  "Green",
+  "Purple",
+  "Pink",
+  "Orange",
+  "Slate",
 ] as const
 
 export const REMINDER_TIMES = [
