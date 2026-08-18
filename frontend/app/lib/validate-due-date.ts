@@ -1,3 +1,14 @@
+export function validateStartDate(startDate: string): string | null {
+  if (!startDate) return null
+
+  const today = new Date().toISOString().split("T")[0]
+  if (startDate < today) {
+    return "Start date cannot be in the past."
+  }
+
+  return null
+}
+
 export function validateDueDate(
   startDate: string,
   startTime: string,

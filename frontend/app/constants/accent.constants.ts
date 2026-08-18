@@ -1,11 +1,9 @@
 export const ACCENT_CLASSES: Record<string, string> = {
   Teal: "accent-teal",
-  Blue: "accent-blue",
-  Green: "accent-green",
-  Purple: "accent-purple",
-  Pink: "accent-pink",
-  Orange: "accent-orange",
-  Slate: "accent-slate",
+  Lavender: "accent-lavender",
+  Sage: "accent-sage",
+  "Dusty Rose": "accent-dusty-rose",
+  "Powder Blue": "accent-powder-blue",
 }
 
 export const ACCENT_STORAGE_KEY = "accent-color"
