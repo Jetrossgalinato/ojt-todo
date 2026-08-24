@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Star } from "lucide-vue-next"
-import type { TaskItem } from "~/lib/task-filters"
+import type { TaskItem } from "~/types/task-filters.type"
 
 defineProps<{
   tasks: TaskItem[]
@@ -88,16 +88,16 @@ function listLabel(task: TaskItem): string {
     </div>
 
     <div class="hidden md:block overflow-x-auto">
-      <Table class="compact-task-table">
+      <Table class="w-full">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
-            <TableHead class="w-10"></TableHead>
-            <TableHead>Task</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Due</TableHead>
-            <TableHead>Tags</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead class="w-12 px-3"></TableHead>
+            <TableHead class="w-[24%] px-3">Task</TableHead>
+            <TableHead class="w-[11%] px-3">Priority</TableHead>
+            <TableHead class="w-[14%] px-3">Category</TableHead>
+            <TableHead class="w-[20%] px-3">Due</TableHead>
+            <TableHead class="w-[14%] px-3">Tags</TableHead>
+            <TableHead class="w-32 px-3">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -109,7 +109,7 @@ function listLabel(task: TaskItem): string {
 
           <template v-else>
             <TableRow v-for="task in tasks" :key="task.id">
-              <TableCell class="w-10">
+              <TableCell class="w-12 px-3">
                 <input
                   type="checkbox"
                   :checked="task.status === 'completed'"
@@ -118,7 +118,7 @@ function listLabel(task: TaskItem): string {
                 >
               </TableCell>
 
-              <TableCell>
+              <TableCell class="w-[24%] px-3">
                 <div class="flex items-center gap-2">
                   <div class="flex flex-col">
                     <p
@@ -135,7 +135,7 @@ function listLabel(task: TaskItem): string {
                 </div>
               </TableCell>
 
-              <TableCell>
+              <TableCell class="w-[11%] px-3">
                 <span
                   class="rounded-full px-2.5 py-1 text-xs font-medium capitalize"
                   :class="priorityStyles[task.priority] ?? 'bg-muted text-muted-foreground'"
@@ -144,7 +144,7 @@ function listLabel(task: TaskItem): string {
                 </span>
               </TableCell>
 
-              <TableCell>
+              <TableCell class="w-[14%] px-3">
                 <span
                   class="rounded-full px-2.5 py-1 text-xs font-medium"
                   :class="listStyles[listLabel(task)] ?? 'bg-muted text-muted-foreground'"
@@ -153,11 +153,11 @@ function listLabel(task: TaskItem): string {
                 </span>
               </TableCell>
 
-              <TableCell class="text-sm text-muted-foreground">
+              <TableCell class="w-[20%] px-3 text-sm text-muted-foreground">
                 <div class="whitespace-nowrap">{{ task.dueDate ?? '—' }} {{ task.dueTime ?? '' }}</div>
               </TableCell>
 
-              <TableCell class="text-sm text-muted-foreground">
+              <TableCell class="w-[14%] px-3 text-sm text-muted-foreground">
                 <div v-if="task.tags.length" class="flex flex-wrap gap-1">
                   <span v-for="tag in task.tags" :key="tag.id" class="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     {{ tag.name }}
@@ -166,7 +166,7 @@ function listLabel(task: TaskItem): string {
                 <span v-else>&mdash;</span>
               </TableCell>
 
-              <TableCell>
+              <TableCell class="w-32 px-3">
                 <div class="flex items-center justify-start gap-1">
                   <Button variant="ghost" size="sm" class="rounded-lg" @click="emit('edit', task)">Edit</Button>
                   <Button variant="ghost" size="sm" class="rounded-lg text-destructive hover:text-destructive" @click="emit('delete', task.id)">Delete</Button>
@@ -180,79 +180,3 @@ function listLabel(task: TaskItem): string {
   </div>
 </template>
 
-<style scoped>
-.compact-task-table :deep(th),
-.compact-task-table :deep(td) {
-  padding: 10px 12px;
-}
-
-.compact-task-table {
-  min-width: 0;
-}
-
-.compact-task-table :deep(table) {
-  width: 100%;
-  min-width: 0;
-  table-layout: fixed;
-}
-
-.compact-task-table :deep(th),
-.compact-task-table :deep(td) {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.compact-task-table :deep(td:nth-child(2) p) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.compact-task-table :deep(th:nth-child(1)),
-.compact-task-table :deep(td:nth-child(1)) {
-  width: 52px;
-}
-
-.compact-task-table :deep(th:nth-child(2)),
-.compact-task-table :deep(td:nth-child(2)) {
-  width: 24%;
-}
-
-.compact-task-table :deep(th:nth-child(3)),
-.compact-task-table :deep(td:nth-child(3)) {
-  width: 11%;
-}
-
-.compact-task-table :deep(th:nth-child(4)),
-.compact-task-table :deep(td:nth-child(4)) {
-  width: 14%;
-}
-
-.compact-task-table :deep(th:nth-child(5)),
-.compact-task-table :deep(td:nth-child(5)) {
-  width: 20%;
-}
-
-.compact-task-table :deep(th:nth-child(6)),
-.compact-task-table :deep(td:nth-child(6)) {
-  width: 14%;
-}
-
-.compact-task-table :deep(th:nth-child(7)),
-.compact-task-table :deep(td:nth-child(7)) {
-  width: 130px;
-  text-align: left;
-}
-
-.compact-task-table :deep(th:first-child),
-.compact-task-table :deep(td:first-child) {
-  padding-left: 14px;
-  padding-right: 6px;
-}
-
-.compact-task-table :deep(th:last-child),
-.compact-task-table :deep(td:last-child) {
-  padding-left: 8px;
-  padding-right: 14px;
-}
-</style>

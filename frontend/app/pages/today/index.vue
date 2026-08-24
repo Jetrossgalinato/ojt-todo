@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue"
-import { useTasksStore } from "~/stores/tasks"
+import { useTaskState } from "~/composables/useTaskState"
 import TaskDialog from "~/pages/dashboard/components/TaskDialog.vue"
 import TagFilter from "~/components/TagFilter.vue"
 import type { TaskForm } from "~/types/tasks.type"
+import { formatTaskTime } from "~/utils/task-dates"
 
 definePageMeta({ layout: "default" })
 
-const store = useTasksStore()
+const { fetchTasks, addTask, toggleComplete, tasksDueToday } = useTaskState()
 
 onMounted(() => {
-  store.fetchTasks()
+  fetchTasks()
 })
 
 const dialogOpen = ref(false)
 const selectedTag = ref<string | null>(null)
 
-const baseFilteredTasks = computed(() => store.getTasksDueToday)
+const baseFilteredTasks = computed(() => tasksDueToday.value)
 const filteredTasks = computed(() => {
   if (!selectedTag.value) return baseFilteredTasks.value
   return baseFilteredTasks.value.filter((task) =>
@@ -57,7 +58,7 @@ function openAddDialog() {
 
 function handleSave() {
   if (!form.value.title.trim()) return
-  store.addTask({
+  addTask({
     title: form.value.title,
     description: form.value.description,
     startDate: form.value.startDate,
@@ -72,14 +73,9 @@ function handleSave() {
 }
 
 function handleToggle(id: string) {
-  store.toggleComplete(id)
+  toggleComplete(id)
 }
 
-function fmtTime(dateStr: string | null): string {
-  if (!dateStr) return ""
-  const d = new Date(dateStr)
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
-}
 </script>
 
 <template>
@@ -101,15 +97,15 @@ function fmtTime(dateStr: string | null): string {
 
     <TagFilter :tasks="baseFilteredTasks" v-model="selectedTag" />
 
-    <div class="card">
+    <div class="overflow-hidden rounded-xl border border-border bg-white">
       <template v-if="baseFilteredTasks.length === 0">
-        <div class="empty-state">Nothing due today.</div>
+        <div class="p-7 text-center text-sm text-muted-foreground">Nothing due today.</div>
       </template>
       <template v-else-if="filteredTasks.length === 0">
-        <div class="empty-state">No tasks match this tag.</div>
+        <div class="p-7 text-center text-sm text-muted-foreground">No tasks match this tag.</div>
       </template>
       <template v-else>
-        <div class="row row-head">
+        <div class="grid grid-cols-[28px_minmax(0,1fr)_100px_90px_100px_34px] items-center gap-3 border-b border-border px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           <span></span>
           <span>TASK</span>
           <span>PRIORITY</span>
@@ -117,7 +113,7 @@ function fmtTime(dateStr: string | null): string {
           <span>DUE</span>
           <span></span>
         </div>
-        <div v-for="task in filteredTasks" :key="task.id" class="row task-row">
+        <div v-for="task in filteredTasks" :key="task.id" class="grid grid-cols-[28px_minmax(0,1fr)_100px_90px_100px_34px] items-center gap-3 border-t border-border px-5 py-3.5">
           <input
             type="checkbox"
             :checked="task.status === 'completed'"
@@ -125,17 +121,17 @@ function fmtTime(dateStr: string | null): string {
             @change="handleToggle(task.id)"
           >
           <div>
-            <div class="task-title" :class="{ done: task.status === 'completed' }">
+            <div class="text-[14.5px] font-semibold" :class="task.status === 'completed' ? 'font-medium text-muted-foreground line-through' : ''">
               {{ task.title }}
             </div>
-            <div v-if="task.description" class="task-desc">
+            <div v-if="task.description" class="mt-0.5 text-xs text-muted-foreground">
               {{ task.description }}
             </div>
           </div>
-          <span class="badge" :class="task.priority">{{ task.priority }}</span>
-          <span v-if="task.tags.length > 0" class="task-tag">{{ task.tags[0]?.name }}</span>
+          <span class="inline-flex items-center justify-center rounded-full px-2 py-1 text-[11px] font-bold uppercase" :class="{ 'bg-emerald-100 text-emerald-700': task.priority === 'low', 'bg-amber-100 text-amber-700': task.priority === 'medium', 'bg-rose-100 text-rose-700': task.priority === 'high' }">{{ task.priority }}</span>
+          <span v-if="task.tags.length > 0" class="inline-flex rounded-full bg-cyan-50 px-2 py-0.5 text-[11px] font-semibold text-teal-700">{{ task.tags[0]?.name }}</span>
           <span v-else></span>
-          <span class="due-text">{{ fmtTime(task.dueTime) }}</span>
+          <span class="text-xs text-muted-foreground">{{ formatTaskTime(task.dueTime) }}</span>
           <span></span>
         </div>
       </template>
@@ -152,103 +148,3 @@ function fmtTime(dateStr: string | null): string {
   </div>
 </template>
 
-<style scoped>
-.card {
-  background: var(--surface-1, #fff);
-  border: 1px solid var(--border, #e6e4de);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.row-head {
-  display: grid;
-  grid-template-columns: 28px 1fr 100px 90px 100px 34px;
-  gap: 14px;
-  align-items: center;
-  padding: 12px 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted, #9aa39d);
-  letter-spacing: 0.04em;
-  border-top: none;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 28px 1fr 100px 90px 100px 34px;
-  gap: 14px;
-  align-items: center;
-  padding: 14px 20px;
-  border-top: 1px solid var(--border, #e6e4de);
-}
-
-.task-row {
-  animation: rowIn 0.22s ease;
-}
-
-.task-title {
-  font-weight: 600;
-  font-size: 14.5px;
-}
-
-.task-title.done {
-  text-decoration: line-through;
-  color: var(--text-secondary, #6b7570);
-  font-weight: 500;
-}
-
-.task-desc {
-  font-size: 12.5px;
-  color: var(--text-secondary, #6b7570);
-  margin-top: 2px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.badge.low { background: #dcfce7; color: #166534; }
-.badge.medium { background: #fef3c7; color: #92400e; }
-.badge.high { background: #fee2e2; color: #991b1b; }
-
-.task-tag {
-  display: inline-flex;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #ecfeff;
-  color: #0f766e;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.due-text {
-  font-size: 12px;
-  color: var(--text-secondary, #6b7570);
-}
-
-.empty-state {
-  padding: 28px 20px;
-  text-align: center;
-  color: var(--text-secondary, #6b7570);
-  font-size: 14px;
-}
-
-@keyframes rowIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>

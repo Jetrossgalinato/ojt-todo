@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import type { TaskItem } from "~/lib/task-filters"
+import type { TaskItem } from "~/types/task-filters.type"
 
 const props = defineProps<{
   tasks: TaskItem[]

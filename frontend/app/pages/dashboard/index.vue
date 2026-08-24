@@ -1,25 +1,32 @@
 ﻿<script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { toast } from "vue-sonner"
-import { useTasksStore } from "~/stores/tasks"
+import { useTaskState } from "~/composables/useTaskState"
 import { tagsToFormInput } from "~/lib/tags"
 import type { TaskForm } from "~/types/tasks.type"
-import type { TaskItem } from "~/lib/task-filters"
+import type { TaskItem } from "~/types/task-filters.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
 import TagFilter from "~/components/TagFilter.vue"
 
-const store = useTasksStore()
+const {
+  tasks,
+  fetchTasks,
+  addTask,
+  updateTask,
+  deleteTask: removeTask,
+  toggleComplete: completeTask,
+} = useTaskState()
 
 const lists = ["Personal", "Work", "Errands"]
 const defaultList = lists[0] ?? "Personal"
 
 onMounted(() => {
-  store.fetchTasks()
+  fetchTasks()
 })
 
 const selectedTag = ref<string | null>(null)
-const baseFilteredTasks = computed(() => store.tasks.filter((task) => task.status === "pending"))
+const baseFilteredTasks = computed(() => tasks.value.filter((task) => task.status === "pending"))
 const filteredTasks = computed(() => {
   if (!selectedTag.value) return baseFilteredTasks.value
   return baseFilteredTasks.value.filter((task) =>
@@ -100,7 +107,7 @@ async function saveTask() {
 
   try {
     if (editingId.value) {
-      await store.updateTask(editingId.value, {
+      await updateTask(editingId.value, {
         title: form.value.title,
         description: form.value.description,
         dueDate: form.value.dueDate || null,
@@ -110,7 +117,7 @@ async function saveTask() {
       })
       toast.success("Task updated")
     } else {
-      await store.addTask({
+      await addTask({
         title: form.value.title,
         description: form.value.description,
         startDate: form.value.startDate,
@@ -130,12 +137,12 @@ async function saveTask() {
 }
 
 function deleteTask(id: string) {
-  store.deleteTask(id)
+  removeTask(id)
   toast.success("Task deleted")
 }
 
 function toggleComplete(id: string) {
-  store.toggleComplete(id)
+  completeTask(id)
 }
 </script>
 
