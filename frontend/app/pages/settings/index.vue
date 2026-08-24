@@ -135,12 +135,12 @@ async function saveToServer() {
           <CardDescription>Choose your accent color.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <Label for="accent-color">Accent color</Label>
             <select
               id="accent-color"
               v-model="form.accentColor"
-              class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
+              class="h-9 w-full sm:w-auto sm:max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
             >
               <option v-for="color in ACCENT_COLORS" :key="color" :value="color">
                 {{ color }}
@@ -156,7 +156,7 @@ async function saveToServer() {
           <CardDescription>Control how and when you get reminded.</CardDescription>
         </CardHeader>
         <CardContent class="flex flex-col gap-6">
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <p class="text-sm font-medium text-foreground">Due reminders</p>
               <p class="text-xs text-muted-foreground">
@@ -166,7 +166,7 @@ async function saveToServer() {
             <div class="flex items-center gap-3">
               <select
                 v-model="form.reminderTime"
-                class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
+                class="h-9 w-full sm:w-auto sm:max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
                 :disabled="!form.dueReminders"
               >
                 <option v-for="time in REMINDER_TIMES" :key="time" :value="time">
@@ -177,7 +177,7 @@ async function saveToServer() {
             </div>
           </div>
 
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <p class="text-sm font-medium text-foreground">Overdue alerts</p>
               <p class="text-xs text-muted-foreground">
@@ -187,7 +187,7 @@ async function saveToServer() {
             <Switch v-model:checked="form.overdueAlerts" />
           </div>
 
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <p class="text-sm font-medium text-foreground">Daily digest</p>
               <p class="text-xs text-muted-foreground">
@@ -197,7 +197,7 @@ async function saveToServer() {
             <div class="flex items-center gap-3">
               <select
                 v-model="form.digestTime"
-                class="h-9 max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
+                class="h-9 w-full sm:w-auto sm:max-w-[180px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
                 :disabled="!form.dailyDigest"
               >
                 <option v-for="time in DIGEST_TIMES" :key="time" :value="time">
@@ -208,7 +208,7 @@ async function saveToServer() {
             </div>
           </div>
 
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <p class="text-sm font-medium text-foreground">Email notifications</p>
               <p class="text-xs text-muted-foreground">
@@ -218,7 +218,7 @@ async function saveToServer() {
             <Switch v-model:checked="form.emailNotifications" />
           </div>
 
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <p class="text-sm font-medium text-foreground">Notification sound</p>
               <p class="text-xs text-muted-foreground">
@@ -228,7 +228,7 @@ async function saveToServer() {
             <Switch v-model:checked="form.notificationSound" />
           </div>
 
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <p class="text-sm font-medium text-foreground">High priority only</p>
               <p class="text-xs text-muted-foreground">
