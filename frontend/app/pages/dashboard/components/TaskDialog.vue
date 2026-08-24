@@ -34,7 +34,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
   <Dialog v-model:open="open">
     <DialogPortal>
       <DialogOverlay />
-      <DialogContent class="rounded-xl sm:max-w-md">
+      <DialogContent class="rounded-xl w-[calc(100%-2rem)] sm:w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle class="text-xl font-bold text-foreground">
             {{ editingId ? "Edit task" : "Add task" }}
@@ -61,7 +61,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="grid gap-1.5">
               <Label for="start-date">Start date</Label>
               <Input id="start-date" v-model="form.startDate" type="date" :min="today" class="h-11 rounded-xl" :class="startDateError ? 'border-red-500 focus:border-red-500' : ''" required />
@@ -74,7 +74,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
             <p v-if="startDateError" class="text-xs text-red-500">{{ startDateError }}</p>
 
           <div class="grid gap-1.5">
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div class="grid gap-1.5">
                 <Label for="due-date">Due date</Label>
                 <Input
@@ -100,7 +100,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
             <p v-if="dateError" class="text-xs text-red-500">{{ dateError }}</p>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="grid gap-1.5">
               <Label for="priority">Priority</Label>
               <select
@@ -131,12 +131,12 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
           </div>
         </div>
 
-        <DialogFooter class="mt-2 gap-2">
-          <Button variant="outline" class="h-11 rounded-xl" @click="emit('cancel')">
+        <DialogFooter class="mt-2 gap-2 flex-col sm:flex-row">
+          <Button variant="outline" class="h-11 rounded-xl w-full sm:w-auto" @click="emit('cancel')">
             Cancel
           </Button>
           <Button
-            class="h-11 rounded-xl text-white transition-all duration-150 active:scale-[0.98]"
+            class="h-11 rounded-xl text-white transition-all duration-150 active:scale-[0.98] w-full sm:w-auto"
             :class="isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:opacity-90'"
             style="background: linear-gradient(135deg, #1c7a6e 0%, #3fa0a0 100%);"
             :disabled="isDisabled"

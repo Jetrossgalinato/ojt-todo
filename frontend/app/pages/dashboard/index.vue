@@ -191,14 +191,14 @@ async function toggleComplete(id: string) {
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div ref="headerRef" class="flex items-center justify-between">
+    <div ref="headerRef" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
       <Button
   @click="handleAddClick"
-  class="rounded-full px-4 py-1.5 text-xs h-auto bg-primary hover:bg-primary/90 text-primary-foreground border-0"
+  class="rounded-full px-4 py-1.5 text-xs h-auto bg-primary hover:bg-primary/90 text-primary-foreground border-0 self-start sm:self-auto"
 >
   + Add Task
 </Button>
