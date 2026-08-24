@@ -17,6 +17,11 @@ export function validateDueDate(
 ): string | null {
   if (!dueDate) return null
 
+  const today = new Date().toISOString().split("T")[0]
+  if (dueDate < today) {
+    return "Due date cannot be in the past."
+  }
+
   if (dueDate < startDate) {
     return "Due date can't be before the start date."
   }

@@ -16,7 +16,12 @@ const emit = defineEmits<{
 const open = defineModel<boolean>("open", { required: true })
 const form = defineModel<TaskForm>("form", { required: true })
 
-const today = new Date().toISOString().split("T")[0]
+const today = new Date().toISOString().slice(0, 10)
+
+const minimumDueDate = computed(() => {
+  if (!form.value.startDate) return today
+  return form.value.startDate > today ? form.value.startDate : today
+})
 
 const startDateError = computed(() => {
   return validateStartDate(form.value.startDate)
@@ -27,7 +32,12 @@ const dateError = computed(() => {
   return startDateError.value || validateDueDate(startDate, startTime, dueDate, dueTime)
 })
 
-const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
+const isDisabled = computed(() =>
+  !form.value.title.trim() ||
+  !form.value.startDate ||
+  !form.value.startTime ||
+  !!dateError.value
+)
 </script>
 
 <template>
@@ -81,7 +91,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
                   id="due-date"
                   v-model="form.dueDate"
                   type="date"
-                  :min="form.startDate || undefined"
+                  :min="minimumDueDate"
                   class="h-11 rounded-xl"
                   :class="dateError ? 'border-red-500 focus:border-red-500' : ''"
                 />

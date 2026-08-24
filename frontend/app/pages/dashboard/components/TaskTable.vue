@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { Star } from 'lucide-vue-next'
-import type { Task } from "~/types/tasks.type"
+import { Star } from "lucide-vue-next"
+import type { TaskItem } from "~/lib/task-filters"
 
 defineProps<{
-  tasks: Task[]
+  tasks: TaskItem[]
 }>()
 
 const emit = defineEmits<{
-  edit: [task: Task]
+  edit: [task: TaskItem]
   delete: [id: string]
   toggle: [id: string]
 }>()
@@ -23,26 +23,23 @@ const listStyles: Record<string, string> = {
   Personal: "bg-violet-50 text-violet-700",
   Errands: "bg-orange-50 text-orange-700",
 }
+
+function listLabel(task: TaskItem): string {
+  return task.list?.name ?? "General"
+}
 </script>
 
 <template>
   <div class="rounded-2xl border border-border bg-white shadow-sm overflow-hidden">
-    <!-- Mobile: Card layout -->
     <div class="divide-y divide-border md:hidden">
       <template v-if="tasks.length === 0">
-        <div class="py-10 text-center text-sm text-muted-foreground">
-          No tasks yet
-        </div>
+        <div class="py-10 text-center text-sm text-muted-foreground">No tasks yet</div>
       </template>
       <template v-else>
-        <div
-          v-for="task in tasks"
-          :key="task.id"
-          class="flex items-start gap-3 p-4"
-        >
+        <div v-for="task in tasks" :key="task.id" class="flex items-start gap-3 p-4">
           <input
             type="checkbox"
-            :checked="task.completed"
+            :checked="task.status === 'completed'"
             class="mt-0.5 h-5 w-5 shrink-0 rounded-md border-border accent-primary cursor-pointer"
             @change="emit('toggle', task.id)"
           >
@@ -50,14 +47,11 @@ const listStyles: Record<string, string> = {
             <div class="flex items-center gap-2">
               <p
                 class="text-sm font-medium text-foreground truncate"
-                :class="task.completed ? 'text-muted-foreground line-through' : ''"
+                :class="task.status === 'completed' ? 'text-muted-foreground line-through' : ''"
               >
                 {{ task.title }}
               </p>
-              <Star
-                v-if="task.priority === 'high'"
-                class="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0"
-              />
+              <Star v-if="task.priority === 'high'" class="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />
             </div>
             <p v-if="task.description" class="mt-0.5 text-xs text-muted-foreground truncate">
               {{ task.description }}
@@ -71,21 +65,12 @@ const listStyles: Record<string, string> = {
               </span>
               <span
                 class="rounded-full px-2 py-0.5 text-[11px] font-medium"
-                :class="listStyles[task.list] ?? 'bg-muted text-muted-foreground'"
+                :class="listStyles[listLabel(task)] ?? 'bg-muted text-muted-foreground'"
               >
-                {{ task.list }}
+                {{ listLabel(task) }}
               </span>
-              <span v-if="task.startDate" class="text-[11px] text-muted-foreground">
-                {{ task.startDate }}
-              </span>
-              <span v-if="task.dueDate" class="text-[11px] text-muted-foreground">
-                Due {{ task.dueDate }}
-              </span>
-              <span
-                v-for="tag in task.tags"
-                :key="tag.id"
-                class="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary"
-              >
+              <span v-if="task.dueDate" class="text-[11px] text-muted-foreground">Due {{ task.dueDate }}</span>
+              <span v-for="tag in task.tags" :key="tag.id" class="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
                 {{ tag.name }}
               </span>
             </div>
@@ -102,27 +87,23 @@ const listStyles: Record<string, string> = {
       </template>
     </div>
 
-    <!-- Desktop: Table layout -->
     <div class="hidden md:block overflow-x-auto">
-      <Table>
+      <Table class="compact-task-table">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead class="w-10"></TableHead>
             <TableHead>Task</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Category</TableHead>
-            <TableHead>Start</TableHead>
             <TableHead>Due</TableHead>
             <TableHead>Tags</TableHead>
-            <TableHead class="text-right">Actions</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <template v-if="tasks.length === 0">
             <TableRow>
-              <TableCell :colspan="8" class="py-10 text-center text-sm text-muted-foreground">
-                No tasks yet
-              </TableCell>
+              <TableCell :colspan="7" class="py-10 text-center text-sm text-muted-foreground">No tasks yet</TableCell>
             </TableRow>
           </template>
 
@@ -131,7 +112,7 @@ const listStyles: Record<string, string> = {
               <TableCell class="w-10">
                 <input
                   type="checkbox"
-                  :checked="task.completed"
+                  :checked="task.status === 'completed'"
                   class="h-5 w-5 rounded-md border-border accent-primary cursor-pointer"
                   @change="emit('toggle', task.id)"
                 >
@@ -142,7 +123,7 @@ const listStyles: Record<string, string> = {
                   <div class="flex flex-col">
                     <p
                       class="text-sm font-medium text-foreground"
-                      :class="task.completed ? 'text-muted-foreground line-through' : ''"
+                      :class="task.status === 'completed' ? 'text-muted-foreground line-through' : ''"
                     >
                       {{ task.title }}
                     </p>
@@ -150,10 +131,7 @@ const listStyles: Record<string, string> = {
                       {{ task.description }}
                     </p>
                   </div>
-                  <Star
-                    v-if="task.priority === 'high'"
-                    class="w-4 h-4 text-amber-400 fill-amber-400 shrink-0"
-                  />
+                  <Star v-if="task.priority === 'high'" class="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
                 </div>
               </TableCell>
 
@@ -169,41 +147,29 @@ const listStyles: Record<string, string> = {
               <TableCell>
                 <span
                   class="rounded-full px-2.5 py-1 text-xs font-medium"
-                  :class="listStyles[task.list] ?? 'bg-muted text-muted-foreground'"
+                  :class="listStyles[listLabel(task)] ?? 'bg-muted text-muted-foreground'"
                 >
-                  {{ task.list }}
+                  {{ listLabel(task) }}
                 </span>
               </TableCell>
 
               <TableCell class="text-sm text-muted-foreground">
-                <div class="whitespace-nowrap">{{ task.startDate }} {{ task.startTime }}</div>
-              </TableCell>
-
-              <TableCell class="text-sm text-muted-foreground">
-                <div class="whitespace-nowrap">{{ task.dueDate }} {{ task.dueTime }}</div>
+                <div class="whitespace-nowrap">{{ task.dueDate ?? '—' }} {{ task.dueTime ?? '' }}</div>
               </TableCell>
 
               <TableCell class="text-sm text-muted-foreground">
                 <div v-if="task.tags.length" class="flex flex-wrap gap-1">
-                  <span
-                    v-for="tag in task.tags"
-                    :key="tag.id"
-                    class="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-                  >
+                  <span v-for="tag in task.tags" :key="tag.id" class="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     {{ tag.name }}
                   </span>
                 </div>
                 <span v-else>&mdash;</span>
               </TableCell>
 
-              <TableCell class="text-right">
-                <div class="flex items-center justify-end gap-1">
-                  <Button variant="ghost" size="sm" class="rounded-lg" @click="emit('edit', task)">
-                    Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" class="rounded-lg text-destructive hover:text-destructive" @click="emit('delete', task.id)">
-                    Delete
-                  </Button>
+              <TableCell>
+                <div class="flex items-center justify-start gap-1">
+                  <Button variant="ghost" size="sm" class="rounded-lg" @click="emit('edit', task)">Edit</Button>
+                  <Button variant="ghost" size="sm" class="rounded-lg text-destructive hover:text-destructive" @click="emit('delete', task.id)">Delete</Button>
                 </div>
               </TableCell>
             </TableRow>
@@ -213,3 +179,80 @@ const listStyles: Record<string, string> = {
     </div>
   </div>
 </template>
+
+<style scoped>
+.compact-task-table :deep(th),
+.compact-task-table :deep(td) {
+  padding: 10px 12px;
+}
+
+.compact-task-table {
+  min-width: 0;
+}
+
+.compact-task-table :deep(table) {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.compact-task-table :deep(th),
+.compact-task-table :deep(td) {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.compact-task-table :deep(td:nth-child(2) p) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-task-table :deep(th:nth-child(1)),
+.compact-task-table :deep(td:nth-child(1)) {
+  width: 52px;
+}
+
+.compact-task-table :deep(th:nth-child(2)),
+.compact-task-table :deep(td:nth-child(2)) {
+  width: 24%;
+}
+
+.compact-task-table :deep(th:nth-child(3)),
+.compact-task-table :deep(td:nth-child(3)) {
+  width: 11%;
+}
+
+.compact-task-table :deep(th:nth-child(4)),
+.compact-task-table :deep(td:nth-child(4)) {
+  width: 14%;
+}
+
+.compact-task-table :deep(th:nth-child(5)),
+.compact-task-table :deep(td:nth-child(5)) {
+  width: 20%;
+}
+
+.compact-task-table :deep(th:nth-child(6)),
+.compact-task-table :deep(td:nth-child(6)) {
+  width: 14%;
+}
+
+.compact-task-table :deep(th:nth-child(7)),
+.compact-task-table :deep(td:nth-child(7)) {
+  width: 130px;
+  text-align: left;
+}
+
+.compact-task-table :deep(th:first-child),
+.compact-task-table :deep(td:first-child) {
+  padding-left: 14px;
+  padding-right: 6px;
+}
+
+.compact-task-table :deep(th:last-child),
+.compact-task-table :deep(td:last-child) {
+  padding-left: 8px;
+  padding-right: 14px;
+}
+</style>
