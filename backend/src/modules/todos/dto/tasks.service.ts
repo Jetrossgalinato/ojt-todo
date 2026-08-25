@@ -51,7 +51,7 @@ function normalizeTask(task: TaskWithRelations): NormalizedTask {
     starred: task.starred,
     userId: task.userId,
     listId: task.listId ?? null,
-    list: task.list ? { id: task.list.id, name: task.list.name } : null,
+    list: task.list ? task.list.name : null,
     tags: task.tags.map((t) => ({ id: t.Tag.id, name: t.Tag.name })),
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
@@ -395,6 +395,22 @@ export class TasksService {
       }
     }
 
+    let listId: string | null = dto.listId ?? null;
+
+    if (dto.listName) {
+      const name = dto.listName.trim();
+      if (name) {
+        const list = await this.prisma.list.upsert({
+          where: { userId_name: { userId, name } },
+          create: { userId, name },
+          update: {},
+        });
+        listId = list.id;
+      } else {
+        listId = null;
+      }
+    }
+
     const task = await this.prisma.task.create({
       data: {
         id: randomUUID(),
@@ -408,7 +424,7 @@ export class TasksService {
         dueTime: dto.dueTime ?? null,
         starred: dto.starred ?? false,
         userId,
-        listId: dto.listId ?? null,
+        listId,
         ...(tagConnections.length ? { tags: { create: tagConnections } } : {}),
       },
       include: taskInclude,
@@ -444,6 +460,19 @@ export class TasksService {
         : {}),
       ...(rest.dueTime !== undefined ? { dueTime: rest.dueTime ?? null } : {}),
     };
+
+    if (rest.listName !== undefined) {
+      const name = rest.listName.trim();
+      updateData.listId = name
+        ? (
+            await this.prisma.list.upsert({
+              where: { userId_name: { userId, name } },
+              create: { userId, name },
+              update: {},
+            })
+          ).id
+        : null;
+    }
 
     if (tagIds !== undefined || tags !== undefined) {
       await this.prisma.taskTag.deleteMany({ where: { taskId: id } });

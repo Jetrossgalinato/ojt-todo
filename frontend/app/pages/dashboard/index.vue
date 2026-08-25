@@ -1,47 +1,39 @@
 ﻿<script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { toast } from "vue-sonner"
-import { useTasks } from "~/composables/useTasks"
-import { useTags, type Tag } from "~/composables/useTags"
-import { getApiErrorMessage } from "~/lib/get-api-error"
+import { useTaskState } from "~/composables/useTaskState"
 import { tagsToFormInput } from "~/lib/tags"
-import type { Task, TaskForm } from "~/types/tasks.type"
-import TagFilter from "~/components/TagFilter.vue"
+import type { TaskForm } from "~/types/tasks.type"
+import type { TaskItem } from "~/types/task-filters.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
+import TagFilter from "~/components/TagFilter.vue"
 
-const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask } = useTasks()
-const { fetchTags } = useTags()
-const authStore = useAuthStore()
+const {
+  tasks,
+  fetchTasks,
+  addTask,
+  updateTask,
+  deleteTask: removeTask,
+  toggleComplete: completeTask,
+} = useTaskState()
 
 const lists = ["Personal", "Work", "Errands"]
 const defaultList = lists[0] ?? "Personal"
 
-const tasks = ref<Task[]>([])
-const tags = ref<Tag[]>([])
-const selectedTag = ref<string | null>(null)
+onMounted(() => {
+  fetchTasks()
+})
 
+const selectedTag = ref<string | null>(null)
+const baseFilteredTasks = computed(() => tasks.value.filter((task) => task.status === "pending"))
 const filteredTasks = computed(() => {
-  if (!selectedTag.value) return tasks.value
-  return tasks.value.filter((t) =>
-    t.tags.some((tag) => tag.name === selectedTag.value),
+  if (!selectedTag.value) return baseFilteredTasks.value
+  return baseFilteredTasks.value.filter((task) =>
+    task.tags.some((tag) => tag.name === selectedTag.value)
   )
 })
-
-onMounted(async () => {
-  try {
-    const [fetchedTasks, fetchedTags] = await Promise.all([
-      fetchTasks(),
-      fetchTags().catch(() => []),
-    ])
-    tasks.value = fetchedTasks
-    tags.value = fetchedTags
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to load tasks."))
-  }
-})
-
-const pendingCount = computed(() => tasks.value.filter((t) => !t.completed).length)
+const pendingCount = computed(() => filteredTasks.value.length)
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -58,16 +50,12 @@ const form = ref<TaskForm>({
   list: defaultList,
 })
 
-function handleAddClick() {
-  if (!authStore.accessToken) return navigateTo("/login")
-  openAddDialog()
-}
-
 function openAddDialog() {
-  editingId.value = null
   const now = new Date()
-  const today = now.toISOString().split("T")[0]
-  const currentTime = now.toTimeString().slice(0, 5)
+  const today = now.toISOString().split("T")[0] ?? ""
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+
+  editingId.value = null
   form.value = {
     title: "",
     description: "",
@@ -98,85 +86,80 @@ function resetForm() {
   }
 }
 
-function editTask(task: Task) {
+function editTask(task: TaskItem) {
   editingId.value = task.id
   dialogOpen.value = true
   form.value = {
     title: task.title,
-    description: task.description,
-    startDate: task.startDate,
-    startTime: task.startTime,
-    dueDate: task.dueDate,
-    dueTime: task.dueTime,
+    description: String(task.description ?? ""),
+    startDate: task.startDate ?? "",
+    startTime: task.startTime ?? "",
+    dueDate: task.dueDate ?? "",
+    dueTime: task.dueTime ?? "",
     priority: task.priority,
     tags: tagsToFormInput(task.tags),
-    list: task.list,
+    list: task.list?.name ?? defaultList,
   }
 }
 
 async function saveTask() {
   if (!form.value.title.trim()) return
 
-  if (!authStore.accessToken) {
-    return navigateTo("/login")
-  }
-
   try {
     if (editingId.value) {
-      const updated = await updateTask(editingId.value, form.value)
-      const task = tasks.value.find((t) => t.id === editingId.value)
-      if (task) Object.assign(task, updated)
+      await updateTask(editingId.value, {
+        title: form.value.title,
+        description: form.value.description,
+        dueDate: form.value.dueDate || null,
+        dueTime: form.value.dueTime || null,
+        priority: form.value.priority,
+        list: form.value.list ? { id: form.value.list, name: form.value.list } : null,
+      })
       toast.success("Task updated")
     } else {
-      const created = await createTask(form.value)
-      tasks.value.unshift(created)
+      await addTask({
+        title: form.value.title,
+        description: form.value.description,
+        startDate: form.value.startDate,
+        startTime: form.value.startTime,
+        priority: form.value.priority,
+        dueDate: form.value.dueDate,
+        dueTime: form.value.dueTime,
+        tags: form.value.tags,
+        list: form.value.list,
+      })
       toast.success("Task created")
     }
     resetForm()
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to save task."))
+  } catch {
+    toast.error("Unable to save task")
   }
 }
 
-async function deleteTask(id: string) {
-  try {
-    await apiDeleteTask(id)
-    tasks.value = tasks.value.filter((t) => t.id !== id)
-    toast.success("Task deleted")
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to delete task."))
-  }
+function deleteTask(id: string) {
+  removeTask(id)
+  toast.success("Task deleted")
 }
 
-async function toggleComplete(id: string) {
-  const task = tasks.value.find((t) => t.id === id)
-  if (!task) return
-
-  try {
-    const updated = await apiToggleComplete(id)
-    Object.assign(task, updated)
-  } catch (error: unknown) {
-    toast.error(getApiErrorMessage(error, "Failed to update task."))
-  }
+function toggleComplete(id: string) {
+  completeTask(id)
 }
 </script>
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
       <Button
-  @click="handleAddClick"
-  class="rounded-full px-4 py-1.5 text-xs h-auto bg-primary hover:bg-primary/90 text-primary-foreground border-0 self-start sm:self-auto"
->
-  + Add Task
-</Button>
+        class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
+        @click="openAddDialog"
+      >
+        + Add Task
+      </Button>
     </div>
-
-    <TagFilter v-if="tags.length > 0" v-model:selected-tag="selectedTag" :tags="tags" />
 
     <TaskDialog
       v-model:open="dialogOpen"
@@ -186,6 +169,8 @@ async function toggleComplete(id: string) {
       @save="saveTask"
       @cancel="resetForm"
     />
+
+    <TagFilter :tasks="baseFilteredTasks" v-model="selectedTag" />
 
     <TaskTable
       :tasks="filteredTasks"

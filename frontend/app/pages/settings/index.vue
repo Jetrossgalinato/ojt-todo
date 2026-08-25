@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted } from "vue"
+import { ref, reactive, watch, onMounted, nextTick } from "vue"
+import gsap from "gsap"
 import { toast } from "vue-sonner"
 import { useSettings } from "~/composables/useSettings"
 import type { UserSettings } from "~/types/settings.type"
@@ -26,9 +27,11 @@ import { Label } from "@/components/ui/label"
 
 definePageMeta({ layout: "default" })
 
-const { updateSettings } = useSettings()
+const { fetchSettings, updateSettings } = useSettings()
 
 const saved = ref(false)
+const headerRef = ref<HTMLElement | null>(null)
+const cardsRef = ref<HTMLElement | null>(null)
 
 let hydrated = false
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -63,10 +66,32 @@ function loadLocalSettings(): UserSettings {
 
 const form = reactive<UserSettings>(defaultSettings())
 
-onMounted(() => {
+onMounted(async () => {
   Object.assign(form, loadLocalSettings())
+  try {
+    const serverSettings = await fetchSettings()
+    Object.assign(form, defaultSettings(), serverSettings)
+    saveLocally()
+  } catch {
+    // server unavailable — keep local values
+  }
   applyAccent(form.accentColor)
   hydrated = true
+
+  await nextTick()
+
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } })
+
+  if (headerRef.value) {
+    tl.from(headerRef.value, { opacity: 0, y: -20, duration: 0.5 })
+  }
+
+  if (cardsRef.value) {
+    const cardEls = cardsRef.value.children
+    if (cardEls.length) {
+      tl.from(cardEls, { opacity: 0, y: 20, duration: 0.4, stagger: 0.12 }, "-=0.2")
+    }
+  }
 })
 
 watch(
@@ -122,13 +147,14 @@ async function saveToServer() {
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div>
+    <div ref="headerRef">
       <h1 class="text-2xl font-semibold text-foreground">Settings</h1>
       <p class="text-sm text-muted-foreground mt-1">
         Manage your theme and task notifications.
       </p>
     </div>
 
+    <div ref="cardsRef">
     <Card>
         <CardHeader>
           <CardTitle>Theme</CardTitle>
@@ -244,6 +270,7 @@ async function saveToServer() {
         <span v-if="saved" class="text-xs text-emerald-600">
           All changes saved ✓
         </span>
+      </div>
       </div>
   </div>
 </template>
