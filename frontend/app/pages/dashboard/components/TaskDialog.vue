@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { TaskForm } from "~/types/tasks.type"
-import { validateDueDate } from "~/lib/validate-due-date"
+import { validateStartDate, validateDueDate } from "~/lib/validate-due-date"
 
 defineProps<{
   lists: string[]
@@ -16,12 +16,28 @@ const emit = defineEmits<{
 const open = defineModel<boolean>("open", { required: true })
 const form = defineModel<TaskForm>("form", { required: true })
 
-const dateError = computed(() => {
-  const { startDate, startTime, dueDate, dueTime } = form.value
-  return validateDueDate(startDate, startTime, dueDate, dueTime)
+const today = new Date().toISOString().slice(0, 10)
+
+const minimumDueDate = computed(() => {
+  if (!form.value.startDate) return today
+  return form.value.startDate > today ? form.value.startDate : today
 })
 
-const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
+const startDateError = computed(() => {
+  return validateStartDate(form.value.startDate)
+})
+
+const dateError = computed(() => {
+  const { startDate, startTime, dueDate, dueTime } = form.value
+  return startDateError.value || validateDueDate(startDate, startTime, dueDate, dueTime)
+})
+
+const isDisabled = computed(() =>
+  !form.value.title.trim() ||
+  !form.value.startDate ||
+  !form.value.startTime ||
+  !!dateError.value
+)
 </script>
 
 <template>
@@ -58,13 +74,14 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="grid gap-1.5">
               <Label for="start-date">Start date</Label>
-              <Input id="start-date" v-model="form.startDate" type="date" class="h-11 rounded-xl" required />
+              <Input id="start-date" v-model="form.startDate" type="date" :min="today" class="h-11 rounded-xl" :class="startDateError ? 'border-red-500 focus:border-red-500' : ''" required />
             </div>
             <div class="grid gap-1.5">
               <Label for="start-time">Start time</Label>
               <Input id="start-time" v-model="form.startTime" type="time" class="h-11 rounded-xl" required />
             </div>
           </div>
+            <p v-if="startDateError" class="text-xs text-red-500">{{ startDateError }}</p>
 
           <div class="grid gap-1.5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -74,7 +91,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
                   id="due-date"
                   v-model="form.dueDate"
                   type="date"
-                  :min="form.startDate || undefined"
+                  :min="minimumDueDate"
                   class="h-11 rounded-xl"
                   :class="dateError ? 'border-red-500 focus:border-red-500' : ''"
                 />
@@ -107,7 +124,7 @@ const isDisabled = computed(() => !form.value.title.trim() || !!dateError.value)
               </select>
             </div>
             <div class="grid gap-1.5">
-              <Label for="list">List / category</Label>
+              <Label for="list">Category</Label>
               <select
                 id="list"
                 v-model="form.list"

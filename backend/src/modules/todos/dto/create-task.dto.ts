@@ -50,6 +50,10 @@ export class CreateTaskDto {
   listId?: string;
 
   @IsOptional()
+  @IsString()
+  listName?: string;
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   tagIds?: string[];

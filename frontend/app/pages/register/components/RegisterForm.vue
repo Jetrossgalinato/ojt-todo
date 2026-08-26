@@ -47,8 +47,7 @@ async function onSubmit(values: Record<string, any>) {
 }
 
 function registerWithGoogle() {
-  const config = useRuntimeConfig()
-  window.location.href = `${config.public.apiBase}/auth/google`
+  // TODO: wire this to your backend's Google OAuth endpoint
 }
 </script>
 

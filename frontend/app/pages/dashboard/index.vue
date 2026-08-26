@@ -1,12 +1,8 @@
 ﻿<script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue"
 import { toast } from "vue-sonner"
-import { useTasks } from "~/composables/useTasks"
-import { useTags, type Tag } from "~/composables/useTags"
-import { getApiErrorMessage } from "~/lib/get-api-error"
 import { tagsToFormInput } from "~/lib/tags"
-import type { Task, TaskForm } from "~/types/tasks.type"
-import TagFilter from "~/components/TagFilter.vue"
+import type { TaskForm } from "~/types/tasks.type"
 import TaskDialog from "./components/TaskDialog.vue"
 import TaskViewDialog from "./components/TaskViewDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
@@ -18,21 +14,24 @@ const authStore = useAuthStore()
 const lists = ["Personal", "Work", "Errands"]
 const defaultList = lists[0] ?? "Personal"
 
-const tasks = ref<Task[]>([])
-const tags = ref<Tag[]>([])
-const selectedTag = ref<string | null>(null)
+onMounted(() => {
+  fetchTasks()
+})
 
 const page = ref(1)
 const limit = ref(10)
 const total = ref(0)
 const totalPages = ref(0)
 const loading = ref(false)
+const tasks = ref<any[]>([])
+const tags = ref<any[]>([])
+const selectedTag = ref<string | null>(null)
 
 const selectedIds = ref<string[]>([])
 const selectedCount = computed(() => selectedIds.value.length)
 
 const viewOpen = ref(false)
-const viewingTask = ref<Task | null>(null)
+const viewingTask = ref<any | null>(null)
 
 async function loadTasks() {
   loading.value = true
@@ -94,16 +93,12 @@ const form = ref<TaskForm>({
   list: defaultList,
 })
 
-function handleAddClick() {
-  if (!authStore.accessToken) return navigateTo("/login")
-  openAddDialog()
-}
-
 function openAddDialog() {
-  editingId.value = null
   const now = new Date()
-  const today = now.toISOString().split("T")[0]
-  const currentTime = now.toTimeString().slice(0, 5)
+  const today = now.toISOString().split("T")[0] ?? ""
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+
+  editingId.value = null
   form.value = {
     title: "",
     description: "",
@@ -134,14 +129,14 @@ function resetForm() {
   }
 }
 
-function editTask(task: Task) {
+function editTask(task: any) {
   editingId.value = task.id
   dialogOpen.value = true
   form.value = {
     title: task.title,
-    description: task.description ?? "",
-    startDate: task.startDate,
-    startTime: task.startTime,
+    description: String(task.description ?? ""),
+    startDate: task.startDate ?? "",
+    startTime: task.startTime ?? "",
     dueDate: task.dueDate ?? "",
     dueTime: task.dueTime ?? "",
     priority: task.priority,
@@ -150,17 +145,13 @@ function editTask(task: Task) {
   }
 }
 
-function viewTask(task: Task) {
+function viewTask(task: any) {
   viewingTask.value = task
   viewOpen.value = true
 }
 
 async function saveTask() {
   if (!form.value.title.trim()) return
-
-  if (!authStore.accessToken) {
-    return navigateTo("/login")
-  }
 
   try {
     if (editingId.value) {
@@ -229,7 +220,7 @@ function toggleSelectAll() {
 
 <template>
   <div class="flex flex-col gap-6 p-4 sm:p-8 max-w-5xl mx-auto w-full">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
@@ -244,15 +235,13 @@ function toggleSelectAll() {
           Delete selected ({{ selectedCount }})
         </Button>
         <Button
-          @click="handleAddClick"
+          @click="openAddDialog"
           class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
         >
           + Add Task
         </Button>
       </div>
     </div>
-
-    <TagFilter v-if="tags.length > 0" v-model:selected-tag="selectedTag" :tags="tags" />
 
     <TaskDialog
       v-model:open="dialogOpen"
