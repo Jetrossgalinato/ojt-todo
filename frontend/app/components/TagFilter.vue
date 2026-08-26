@@ -13,22 +13,24 @@ function clear() {
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
     <Label for="tag-filter" class="text-sm text-muted-foreground whitespace-nowrap">
       Filter by tag
     </Label>
-    <select
-      id="tag-filter"
-      v-model="selectedTag"
-      class="h-9 max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
-    >
-      <option :value="null">All tags</option>
-      <option v-for="tag in props.tags" :key="tag.id" :value="tag.name">
-        {{ tag.name }}{{ tag._count ? ` (${tag._count.tasks})` : "" }}
-      </option>
-    </select>
-    <Button v-if="selectedTag" variant="ghost" size="sm" class="rounded-lg" @click="clear">
-      Clear
-    </Button>
+    <div class="flex items-center gap-2">
+      <select
+        id="tag-filter"
+        v-model="selectedTag"
+        class="h-9 w-full sm:w-auto sm:max-w-[200px] rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
+      >
+        <option :value="null">All tags</option>
+        <option v-for="tag in props.tags" :key="tag.id" :value="tag.name">
+          {{ tag.name }}{{ tag._count ? ` (${tag._count.tasks})` : "" }}
+        </option>
+      </select>
+      <Button v-if="selectedTag" variant="ghost" size="sm" class="rounded-lg" @click="clear">
+        Clear
+      </Button>
+    </div>
   </div>
 </template>

@@ -16,10 +16,10 @@ function goHome() {
 
 <template>
   <div class="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center">
-    <h1 class="text-6xl font-bold text-foreground">
+    <h1 class="text-4xl sm:text-6xl font-bold text-foreground">
       {{ error.statusCode }}
     </h1>
-    <p class="text-lg text-muted-foreground">
+    <p class="text-base sm:text-lg text-muted-foreground">
       {{ isNotFound ? "This page doesn't exist." : (error.statusMessage || 'Something went wrong.') }}
     </p>
     <Button class="mt-4" @click="goHome">
