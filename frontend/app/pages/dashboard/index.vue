@@ -1,22 +1,15 @@
 ﻿<script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, watch, onMounted } from "vue"
 import { toast } from "vue-sonner"
-import { useTaskState } from "~/composables/useTaskState"
 import { tagsToFormInput } from "~/lib/tags"
 import type { TaskForm } from "~/types/tasks.type"
-import type { TaskItem } from "~/types/task-filters.type"
 import TaskDialog from "./components/TaskDialog.vue"
+import TaskViewDialog from "./components/TaskViewDialog.vue"
 import TaskTable from "./components/TaskTable.vue"
-import TagFilter from "~/components/TagFilter.vue"
 
-const {
-  tasks,
-  fetchTasks,
-  addTask,
-  updateTask,
-  deleteTask: removeTask,
-  toggleComplete: completeTask,
-} = useTaskState()
+const { fetchTasks, createTask, updateTask, deleteTask: apiDeleteTask, batchDeleteTasks } = useTasks()
+const { fetchTags } = useTags()
+const authStore = useAuthStore()
 
 const lists = ["Personal", "Work", "Errands"]
 const defaultList = lists[0] ?? "Personal"
@@ -25,15 +18,65 @@ onMounted(() => {
   fetchTasks()
 })
 
+const page = ref(1)
+const limit = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
+const loading = ref(false)
+const tasks = ref<any[]>([])
+const tags = ref<any[]>([])
 const selectedTag = ref<string | null>(null)
-const baseFilteredTasks = computed(() => tasks.value.filter((task) => task.status === "pending"))
-const filteredTasks = computed(() => {
-  if (!selectedTag.value) return baseFilteredTasks.value
-  return baseFilteredTasks.value.filter((task) =>
-    task.tags.some((tag) => tag.name === selectedTag.value)
-  )
+
+const selectedIds = ref<string[]>([])
+const selectedCount = computed(() => selectedIds.value.length)
+
+const viewOpen = ref(false)
+const viewingTask = ref<any | null>(null)
+
+async function loadTasks() {
+  loading.value = true
+  try {
+    const res = await fetchTasks({
+      page: page.value,
+      limit: limit.value,
+      tag: selectedTag.value ?? undefined,
+    })
+    tasks.value = res.data
+    total.value = res.total
+    totalPages.value = res.totalPages
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Failed to load tasks."))
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(page, () => {
+  selectedIds.value = []
+  loadTasks()
 })
-const pendingCount = computed(() => filteredTasks.value.length)
+
+watch(selectedTag, () => {
+  selectedIds.value = []
+  if (page.value !== 1) {
+    page.value = 1
+    return
+  }
+  loadTasks()
+})
+
+onMounted(async () => {
+  const [fetchedTags] = await Promise.all([
+    fetchTags().catch(() => []),
+    loadTasks(),
+  ])
+  tags.value = fetchedTags
+})
+
+const pendingCount = computed(() => tasks.value.filter((t) => t.status === "pending").length)
+
+const rangeStart = computed(() => (total.value === 0 ? 0 : (page.value - 1) * limit.value + 1))
+const rangeEnd = computed(() => Math.min(page.value * limit.value, total.value))
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -86,7 +129,7 @@ function resetForm() {
   }
 }
 
-function editTask(task: TaskItem) {
+function editTask(task: any) {
   editingId.value = task.id
   dialogOpen.value = true
   form.value = {
@@ -102,47 +145,76 @@ function editTask(task: TaskItem) {
   }
 }
 
+function viewTask(task: any) {
+  viewingTask.value = task
+  viewOpen.value = true
+}
+
 async function saveTask() {
   if (!form.value.title.trim()) return
 
   try {
     if (editingId.value) {
-      await updateTask(editingId.value, {
-        title: form.value.title,
-        description: form.value.description,
-        dueDate: form.value.dueDate || null,
-        dueTime: form.value.dueTime || null,
-        priority: form.value.priority,
-        list: form.value.list ? { id: form.value.list, name: form.value.list } : null,
-      })
+      await updateTask(editingId.value, form.value)
       toast.success("Task updated")
     } else {
-      await addTask({
-        title: form.value.title,
-        description: form.value.description,
-        startDate: form.value.startDate,
-        startTime: form.value.startTime,
-        priority: form.value.priority,
-        dueDate: form.value.dueDate,
-        dueTime: form.value.dueTime,
-        tags: form.value.tags,
-        list: form.value.list,
-      })
+      await createTask(form.value)
       toast.success("Task created")
+      selectedIds.value = []
+      if (page.value !== 1) {
+        page.value = 1
+        resetForm()
+        return
+      }
     }
     resetForm()
-  } catch {
-    toast.error("Unable to save task")
+    await loadTasks()
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Failed to save task."))
   }
 }
 
-function deleteTask(id: string) {
-  removeTask(id)
-  toast.success("Task deleted")
+async function deleteTask(id: string) {
+  try {
+    await apiDeleteTask(id)
+    selectedIds.value = selectedIds.value.filter((s) => s !== id)
+    toast.success("Task deleted")
+    await loadTasks()
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Failed to delete task."))
+  }
 }
 
-function toggleComplete(id: string) {
-  completeTask(id)
+async function deleteSelected() {
+  if (selectedIds.value.length === 0) return
+  try {
+    await batchDeleteTasks(selectedIds.value)
+    selectedIds.value = []
+    toast.success("Selected tasks deleted")
+    await loadTasks()
+  } catch (error: unknown) {
+    toast.error(getApiErrorMessage(error, "Failed to delete selected tasks."))
+  }
+}
+
+function toggleSelect(id: string) {
+  selectedIds.value = selectedIds.value.includes(id)
+    ? selectedIds.value.filter((s) => s !== id)
+    : [...selectedIds.value, id]
+}
+
+function toggleSelectAll() {
+  const visibleIds = tasks.value.map((t) => t.id)
+  const allSelected = visibleIds.every((id) => selectedIds.value.includes(id))
+  if (allSelected) {
+    const selected = new Set(selectedIds.value)
+    visibleIds.forEach((id) => selected.delete(id))
+    selectedIds.value = [...selected]
+  } else {
+    const selected = new Set(selectedIds.value)
+    visibleIds.forEach((id) => selected.add(id))
+    selectedIds.value = [...selected]
+  }
 }
 </script>
 
@@ -153,12 +225,22 @@ function toggleComplete(id: string) {
         <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-1">{{ pendingCount }} tasks pending</p>
       </div>
-      <Button
-        class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
-        @click="openAddDialog"
-      >
-        + Add Task
-      </Button>
+      <div class="flex items-center gap-2">
+        <Button
+          v-if="selectedCount > 0"
+          variant="outline"
+          class="rounded-full px-4 py-1.5 text-xs h-auto border-destructive/40 text-destructive hover:text-destructive"
+          @click="deleteSelected"
+        >
+          Delete selected ({{ selectedCount }})
+        </Button>
+        <Button
+          @click="openAddDialog"
+          class="rounded-full px-4 py-1.5 text-xs h-auto bg-teal-700 hover:bg-teal-800 text-white border-0"
+        >
+          + Add Task
+        </Button>
+      </div>
     </div>
 
     <TaskDialog
@@ -170,13 +252,47 @@ function toggleComplete(id: string) {
       @cancel="resetForm"
     />
 
-    <TagFilter :tasks="baseFilteredTasks" v-model="selectedTag" />
+    <TaskViewDialog v-model:open="viewOpen" :task="viewingTask" />
 
     <TaskTable
-      :tasks="filteredTasks"
+      :tasks="tasks"
+      :selected-ids="selectedIds"
+      @view="viewTask"
       @edit="editTask"
       @delete="deleteTask"
-      @toggle="toggleComplete"
+      @select="toggleSelect"
+      @select-all="toggleSelectAll"
     />
+
+    <div v-if="totalPages > 1" class="flex flex-col items-center gap-2">
+      <Pagination
+        v-model:page="page"
+        :total="total"
+        :items-per-page="limit"
+        :sibling-count="1"
+        show-edges
+        :disabled="loading"
+      >
+        <PaginationContent v-slot="{ items }">
+          <PaginationFirst />
+          <PaginationPrevious />
+          <template v-for="(item, index) in items" :key="index">
+            <PaginationEllipsis v-if="item.type === 'ellipsis'" />
+            <PaginationItem
+              v-else
+              :value="item.value"
+              :is-active="item.value === page"
+            >
+              {{ item.value }}
+            </PaginationItem>
+          </template>
+          <PaginationNext />
+          <PaginationLast />
+        </PaginationContent>
+      </Pagination>
+      <p class="text-xs text-muted-foreground">
+        Showing {{ rangeStart }}–{{ rangeEnd }} of {{ total }} tasks
+      </p>
+    </div>
   </div>
 </template>

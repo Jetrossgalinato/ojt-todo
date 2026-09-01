@@ -19,7 +19,7 @@ const options = [
       :class="
         colorMode.preference === option.value
           ? 'border border-white/25 bg-white/[0.12] text-white'
-          : 'border border-transparent text-sidebar-primary-foreground/80 hover:bg-white/10 hover:text-sidebar-primary-foreground'
+          : 'border border-transparent text-teal-100 hover:bg-teal-700 dark:text-zinc-300 dark:hover:bg-zinc-800'
       "
       @click="colorMode.preference = option.value"
     >

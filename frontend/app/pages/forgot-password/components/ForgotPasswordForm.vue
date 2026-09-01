@@ -43,7 +43,7 @@ async function onSubmit(values: Record<string, any>) {
       </p>
       <NuxtLink
         to="/login"
-        class="mt-2 text-sm font-medium text-primary hover:text-primary/80"
+        class="mt-2 text-sm font-medium text-teal-600 hover:text-teal-500"
       >
         Back to login
       </NuxtLink>
@@ -92,7 +92,7 @@ async function onSubmit(values: Record<string, any>) {
 
         <p class="text-center text-sm text-muted-foreground">
           Remember your password?
-          <NuxtLink to="/login" class="font-medium text-primary hover:text-primary/80">
+          <NuxtLink to="/login" class="font-medium text-teal-600 hover:text-teal-500">
             Back to login
           </NuxtLink>
         </p>

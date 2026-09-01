@@ -62,8 +62,8 @@ watch(() => route.path, () => {
           :to="item.to"
           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           :class="isActive(item.to)
-            ? 'bg-white/90 text-sidebar-primary dark:bg-white/10 dark:text-white'
-            : 'text-sidebar-primary-foreground/80 hover:bg-white/10 hover:text-sidebar-primary-foreground'"
+            ? 'bg-white text-teal-800 dark:bg-teal-600 dark:text-white'
+            : 'text-teal-100 hover:bg-teal-700 dark:text-zinc-300 dark:hover:bg-zinc-800'"
         >
           <component :is="item.icon" class="w-4 h-4" />
           {{ item.label }}
@@ -72,14 +72,11 @@ watch(() => route.path, () => {
 
       <div class="mt-auto flex flex-col gap-1">
         <ClientOnly>
-          <NotificationBell />
-        </ClientOnly>
-        <ClientOnly>
           <ThemeSwitcher />
         </ClientOnly>
 
         <button
-          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-primary-foreground/80 hover:bg-white/10 hover:text-sidebar-primary-foreground transition-colors"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-teal-100 hover:bg-teal-700 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
           @click="handleLogout"
         >
           <LogOut class="w-4 h-4" />

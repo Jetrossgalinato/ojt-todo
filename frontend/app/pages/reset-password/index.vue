@@ -58,7 +58,7 @@ const onSubmit = handleSubmit(async (values) => {
         <div v-if="!token" class="flex flex-col items-center gap-4 text-center">
           <h1 class="text-3xl font-bold tracking-tight text-foreground">Invalid link</h1>
           <p class="text-sm text-muted-foreground">This password reset link is invalid or has expired.</p>
-          <NuxtLink to="/forgot-password" class="mt-2 text-sm font-medium text-primary hover:text-primary/80">Request a new link</NuxtLink>
+          <NuxtLink to="/forgot-password" class="mt-2 text-sm font-medium text-teal-600 hover:text-teal-500">Request a new link</NuxtLink>
         </div>
 
         <div v-else-if="isSuccess" class="flex flex-col items-center gap-4 text-center">

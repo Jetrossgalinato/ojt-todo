@@ -192,7 +192,7 @@ function registerWithGoogle() {
 
       <p class="text-center text-sm text-muted-foreground">
         Already have an account?
-        <NuxtLink to="/login" class="font-medium text-primary hover:text-primary/80">
+        <NuxtLink to="/login" class="font-medium text-teal-600 hover:text-teal-500">
           Sign in
         </NuxtLink>
       </p>

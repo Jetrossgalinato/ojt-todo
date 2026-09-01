@@ -67,7 +67,7 @@ const isDisabled = computed(() =>
               v-model="form.description"
               rows="2"
               placeholder="Optional notes..."
-              class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary/60"
+              class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-teal-500/60"
             />
           </div>
 
@@ -116,7 +116,7 @@ const isDisabled = computed(() =>
               <select
                 id="priority"
                 v-model="form.priority"
-                class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
+                class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -128,7 +128,7 @@ const isDisabled = computed(() =>
               <select
                 id="list"
                 v-model="form.list"
-                class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/60"
+                class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-teal-500/60"
               >
                 <option v-for="l in lists" :key="l" :value="l">{{ l }}</option>
               </select>
